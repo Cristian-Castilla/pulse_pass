@@ -133,4 +133,33 @@ class TicketRepositoryTest extends PostgresContainerSupport {
         assertThrows(DataIntegrityViolationException.class,
                 () -> ticketRepository.saveAndFlush(duplicate));
     }
+
+    @Test
+    void shouldFindTicketsForFutureEventsOrderedByDate() {
+        LocalDate today = LocalDate.now();
+
+        Venue futureVenue = venueRepository.save(new Venue("VEN-FUTURE", "Venue futuro",
+                "Bogotá", "Dirección", 1000L, true));
+
+        Event pastEvent = eventRepository.save(new Event("EVT-PAST", "Evento pasado",
+                "Descripción", EventCategory.MUSIC, EventStatus.PUBLISHED,
+                today.minusDays(1), null, null, futureVenue));
+        Event futureEvent = eventRepository.save(new Event("EVT-FUTURE", "Evento futuro",
+                "Descripción", EventCategory.MUSIC, EventStatus.PUBLISHED,
+                today.plusDays(1), null, null, futureVenue));
+
+        User testUser = userRepository.save(new User("test-user", "test@example.com", true));
+
+        ticketRepository.save(new Ticket("TCK-PAST", TicketType.GENERAL,
+                new BigDecimal("50000"), TicketStatus.PAID, LocalDateTime.now(), testUser, pastEvent));
+        ticketRepository.save(new Ticket("TCK-FUTURE", TicketType.GENERAL,
+                new BigDecimal("50000"), TicketStatus.PAID, LocalDateTime.now(), testUser, futureEvent));
+        ticketRepository.flush();
+
+        List<Ticket> futureTickets = ticketRepository.findTicketsForFutureEvents(today);
+
+        assertThat(futureTickets).hasSize(1);
+        assertThat(futureTickets.get(0).getTicketCode()).isEqualTo("TCK-FUTURE");
+        assertThat(futureTickets.get(0).getEvent().getEventCode()).isEqualTo("EVT-FUTURE");
+    }
 }
