@@ -136,6 +136,13 @@ class TicketRepositoryTest extends PostgresContainerSupport {
 
     @Test
     void shouldFindTicketsForFutureEventsOrderedByDate() {
+        // Limpiar datos del setUpScenario para este test
+        ticketRepository.deleteAll();
+        eventRepository.deleteAll();
+        userRepository.deleteAll();
+        venueRepository.deleteAll();
+        ticketRepository.flush();
+
         LocalDate today = LocalDate.now();
 
         Venue futureVenue = venueRepository.save(new Venue("VEN-FUTURE", "Venue futuro",
