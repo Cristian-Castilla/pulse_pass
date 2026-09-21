@@ -59,6 +59,41 @@ class EventRepositoryTest extends PostgresContainerSupport {
     }
 
     @Test
+    void shouldFindPublishedEventsOrderedByDate() {
+        eventRepository.save(new Event("EVT-002", "Evento posterior",
+                "Descripción", EventCategory.MUSIC, EventStatus.PUBLISHED,
+                LocalDate.now().plusMonths(5), null, null, venue));
+        eventRepository.save(new Event("EVT-001", "Evento anterior",
+                "Descripción", EventCategory.MUSIC, EventStatus.PUBLISHED,
+                LocalDate.now().plusMonths(1), null, null, venue));
+        eventRepository.save(new Event("EVT-003", "Evento draft",
+                "Descripción", EventCategory.MUSIC, EventStatus.DRAFT,
+                LocalDate.now().plusMonths(3), null, null, venue));
+
+        List<Event> published = eventRepository.findByStatusOrderByEventDateAsc(EventStatus.PUBLISHED);
+
+        assertThat(published).hasSize(2);
+        assertThat(published.get(0).getEventCode()).isEqualTo("EVT-001");
+        assertThat(published.get(1).getEventCode()).isEqualTo("EVT-002");
+    }
+
+    @Test
+    void shouldFindEventsByCityAndArtist() {
+        Artist solarBeat = artistRepository.findByStageName("Solar Beat").orElseThrow();
+        eventRepository.save(new Event("CMF-2026", "Caribbean Music Fest 2026",
+                "Festival", EventCategory.MUSIC, EventStatus.PUBLISHED,
+                LocalDate.now().plusMonths(3), null, null, venue));
+        eventRepository.findByEventCode("CMF-2026").ifPresent(e -> {
+            e.addArtist(solarBeat);
+            eventRepository.save(e);
+        });
+
+        List<Event> found = eventRepository.findByCityAndArtist("Santa Marta", "Solar Beat");
+
+        assertThat(found).extracting(Event::getEventCode).containsExactly("CMF-2026");
+    }
+
+    @Test
     void shouldAssociateEventWithMultipleArtists() {
         Artist solarBeat = artistRepository.findByStageName("Solar Beat").orElseThrow();
         Artist neonWaves = artistRepository.findByStageName("Neon Waves").orElseThrow();
