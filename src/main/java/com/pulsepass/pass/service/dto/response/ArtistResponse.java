@@ -1,0 +1,9 @@
+package com.pulsepass.pass.service.dto.response;
+
+public record ArtistResponse(
+        Long id,
+        String stageName,
+        String country,
+        String genre,
+        Boolean active
+) {}
