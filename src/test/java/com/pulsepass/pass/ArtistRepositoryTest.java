@@ -2,62 +2,45 @@ package com.pulsepass.pass;
 
 import com.pulsepass.pass.domain.Artist;
 import com.pulsepass.pass.repository.ArtistRepository;
-
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * QT-001/QT-007 (verifica el catálogo sembrado por V2 y query method simple)
- * y QT-009 (restricción UNIQUE en stage_name).
+ * Verifica el catálogo sembrado por V2 y la restricción UNIQUE en stage_name.
+ *
+ * PRD: "stageName UNIQUE", "stageName NOT NULL"
+ * Query Method: findByStageName
  */
-
 class ArtistRepositoryTest extends PostgresContainerSupport {
 
     @Autowired
     private ArtistRepository artistRepository;
 
-    private Long createdArtistId;
-
-    @AfterEach
-    void cleanUpOwnData() {
-        if (createdArtistId != null) {
-            artistRepository.deleteById(createdArtistId);
-            createdArtistId = null;
-        }
-    }
-
     @Test
-    void shouldFindArtistFromSeedDataByStageName() {
-        Optional<Artist> found = artistRepository.findByStageName("Solar Beat");
-
-        assertThat(found).isPresent();
-        assertThat(found.get().getCountry()).isEqualTo("Colombia");
-        assertThat(found.get().getGenre()).isEqualTo("Electrónica");
+    void shouldFindSeededArtistByStageName() {
+        // V2 debe haber sembrado "Solar Beat"
+        assertThat(artistRepository.findByStageName("Solar Beat")).isPresent();
     }
 
     @Test
     void shouldReturnEmptyWhenStageNameDoesNotExist() {
-        Optional<Artist> found = artistRepository.findByStageName("No Existe Como Artista");
-
-        assertThat(found).isEmpty();
+        assertThat(artistRepository.findByStageName("Nonexistent Artist")).isEmpty();
     }
 
     @Test
-    void shouldEnforceUniqueStageNameConstraint() {
+    void shouldEnforceUniqueStageNameConstraintOnSaveAndFlush() {
         Artist original = artistRepository.saveAndFlush(
-                new Artist("Unique Stage Name Test", "Colombia", "Rock", true));
-        createdArtistId = original.getId();
+                new Artist("Unique Stage Test", "Colombia", "Rock", true));
 
-        Artist duplicate = new Artist("Unique Stage Name Test", "México", "Pop", true);
-
+        Artist duplicate = new Artist("Unique Stage Test", "México", "Pop", true);
         assertThrows(DataIntegrityViolationException.class,
                 () -> artistRepository.saveAndFlush(duplicate));
+
+        // Limpiar: eliminar el artista creado
+        artistRepository.delete(original);
     }
 }

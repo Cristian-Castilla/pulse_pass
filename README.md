@@ -99,7 +99,7 @@ En `application.yml`:
 ```yaml
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/deepblue}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/pulsepass}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
   jpa:
