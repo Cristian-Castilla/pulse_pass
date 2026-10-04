@@ -13,7 +13,6 @@ import jakarta.persistence.UniqueConstraint;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Table(
@@ -53,78 +52,15 @@ public class User {
         this.active = active;
     }
 
-    public void addTicket(Ticket ticket) {
-        this.tickets.add(ticket);
-        ticket.setUser(this);
-    }
-
-    public void removeTicket(Ticket ticket) {
-        this.tickets.remove(ticket);
-        ticket.setUser(null);
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
-    public UserProfile getProfile() {
-        return profile;
-    }
-
-    public void setProfile(UserProfile profile) {
-        this.profile = profile;
-    }
-
-    public List<Ticket> getTickets() {
-        return tickets;
-    }
-
-    public void setTickets(List<Ticket> tickets) {
-        this.tickets = tickets;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof User user)) return false;
-        return username != null && username.equals(user.getUsername());
+        return username != null && username.equals(user.username);
     }
 
     @Override
     public int hashCode() {
         return username != null ? username.hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return "User{id=%d, username='%s'}".formatted(id, username);
     }
 }
