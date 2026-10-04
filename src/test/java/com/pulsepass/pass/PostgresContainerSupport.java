@@ -9,7 +9,7 @@ public abstract class PostgresContainerSupport {
 
     @ServiceConnection
     static final PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer("postgres:16-alpine");
+            new PostgreSQLContainer<>("postgres:16-alpine");
 
     static {
         postgres.start();

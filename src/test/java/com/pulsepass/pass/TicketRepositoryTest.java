@@ -138,6 +138,11 @@ class TicketRepositoryTest extends PostgresContainerSupport {
     void shouldFindTicketsForFutureEventsOrderedByDate() {
         LocalDate today = LocalDate.now();
 
+        // Limpiar tickets creados por @BeforeEach que pertenecen al evento CMF-2026 (futuro)
+        // para aislar este test y evaluar únicamente los tickets creados aquí
+        ticketRepository.deleteAll();
+        ticketRepository.flush();
+
         Venue futureVenue = venueRepository.save(new Venue("VEN-FUTURE", "Venue futuro",
                 "Bogotá", "Dirección", 1000L, true));
 
