@@ -1,4 +1,4 @@
-package com.pulsepass.pass.service.dto.response;
+package com.pulsepass.pass.dto.response;
 
 import com.pulsepass.pass.domain.EventCategory;
 import com.pulsepass.pass.domain.EventStatus;
