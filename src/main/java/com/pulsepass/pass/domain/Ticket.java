@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -45,11 +46,11 @@ public class Ticket {
     @Column(name = "purchase_date", nullable = false)
     private LocalDateTime purchaseDate;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
@@ -67,11 +68,51 @@ public class Ticket {
         this.event = event;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public String getTicketCode() {
+        return ticketCode;
+    }
+
+    public TicketType getType() {
+        return type;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public TicketStatus getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getPurchaseDate() {
+        return purchaseDate;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Event getEvent() {
+        return event;
+    }
+
+    public void setEvent(Event event) {
+        this.event = event;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Ticket ticket)) return false;
-        return ticketCode != null && ticketCode.equals(ticket.ticketCode);
+        return ticketCode != null && ticketCode.equals(ticket.getTicketCode());
     }
 
     @Override
