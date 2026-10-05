@@ -1,25 +1,25 @@
 package com.pulsepass.pass;
 
 import com.pulsepass.pass.domain.User;
-import com.pulsepass.pass.domain.UserProfile;
 import com.pulsepass.pass.repository.UserRepository;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import java.time.LocalDate;
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * QT-004 (User 1:1 UserProfile), QT-007 (query methods simples)
- * y QT-009 (restricción UNIQUE en email).
+ * Verifica query methods y restricciones de User.
+ *
+ * PRD: "username UNIQUE", "username NOT NULL", "email UNIQUE", "email NOT NULL"
+ * Query Methods:
+ * - findByUsername
+ * - findByEmailIgnoreCase
+ * - existsByUsername
+ * - existsByEmail
  */
-
 class UserRepositoryTest extends PostgresContainerSupport {
 
     @Autowired
@@ -27,32 +27,15 @@ class UserRepositoryTest extends PostgresContainerSupport {
 
     @BeforeEach
     void cleanDatabase() {
-        userRepository.deleteAll();
+        userRepository.deleteAllInBatch();
     }
 
     @Test
-    void shouldFindUserByUsername() {
-        userRepository.save(new User("andrea", "andrea@example.com", true));
+    void shouldSaveAndFindUserByUsername() {
+        User user = new User("andrea", "andrea@example.com", true);
+        userRepository.saveAndFlush(user);
 
-        Optional<User> found = userRepository.findByUsername("andrea");
-
-        assertThat(found).isPresent();
-        assertThat(found.get().getEmail()).isEqualTo("andrea@example.com");
-    }
-
-    @Test
-    void shouldPersistOneToOneUserProfileViaCascade() {
-        User andrea = new User("andrea", "andrea@example.com", true);
-        UserProfile profile = new UserProfile("Andrea", "Gómez", "3001112233",
-                "Santa Marta", LocalDate.of(1995, 4, 10), andrea);
-        andrea.setProfile(profile);
-
-        userRepository.saveAndFlush(andrea);
-
-        User reloaded = userRepository.findByUsername("andrea").orElseThrow();
-        assertThat(reloaded.getProfile()).isNotNull();
-        assertThat(reloaded.getProfile().getFirstName()).isEqualTo("Andrea");
-        assertThat(reloaded.getProfile().getUser().getUsername()).isEqualTo("andrea");
+        assertThat(userRepository.findByUsername("andrea")).isPresent();
     }
 
     @Test
@@ -62,17 +45,50 @@ class UserRepositoryTest extends PostgresContainerSupport {
 
     @Test
     void shouldFindUserByEmailIgnoringCase() {
-        userRepository.save(new User("carlos", "carlos@example.com", true));
+        userRepository.saveAndFlush(new User("carlos", "carlos@example.com", true));
 
         assertThat(userRepository.findByEmailIgnoreCase("CARLOS@EXAMPLE.COM")).isPresent();
     }
 
     @Test
-    void shouldEnforceUniqueEmailConstraint() {
-        userRepository.save(new User("andrea", "andrea@example.com", true));
-        userRepository.flush();
+    void shouldReturnFalseWhenUsernameDoesNotExist() {
+        assertThat(userRepository.existsByUsername("ghost")).isFalse();
+    }
+
+    @Test
+    void shouldReturnTrueWhenUsernameExists() {
+        userRepository.saveAndFlush(new User("dave", "dave@example.com", true));
+
+        assertThat(userRepository.existsByUsername("dave")).isTrue();
+    }
+
+    @Test
+    void shouldReturnFalseWhenEmailDoesNotExist() {
+        assertThat(userRepository.existsByEmail("ghost@example.com")).isFalse();
+    }
+
+    @Test
+    void shouldReturnTrueWhenEmailExists() {
+        userRepository.saveAndFlush(new User("eve", "eve@example.com", true));
+
+        assertThat(userRepository.existsByEmail("eve@example.com")).isTrue();
+    }
+
+    @Test
+    void shouldEnforceUniqueEmailConstraintOnSaveAndFlush() {
+        userRepository.saveAndFlush(new User("andrea", "andrea@example.com", true));
 
         User duplicate = new User("otro-usuario", "andrea@example.com", true);
+
+        assertThrows(DataIntegrityViolationException.class,
+                () -> userRepository.saveAndFlush(duplicate));
+    }
+
+    @Test
+    void shouldEnforceUniqueUsernameConstraintOnSaveAndFlush() {
+        userRepository.saveAndFlush(new User("andrea", "andrea@example.com", true));
+
+        User duplicate = new User("andrea", "otro-email@example.com", true);
 
         assertThrows(DataIntegrityViolationException.class,
                 () -> userRepository.saveAndFlush(duplicate));

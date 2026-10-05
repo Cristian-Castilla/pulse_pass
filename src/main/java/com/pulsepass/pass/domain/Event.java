@@ -17,7 +17,6 @@ import jakarta.persistence.UniqueConstraint;
 
 import java.time.LocalDate;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -96,108 +95,15 @@ public class Event {
         this.artists.remove(artist);
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getEventCode() {
-        return eventCode;
-    }
-
-    public void setEventCode(String eventCode) {
-        this.eventCode = eventCode;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public EventCategory getCategory() {
-        return category;
-    }
-
-    public void setCategory(EventCategory category) {
-        this.category = category;
-    }
-
-    public EventStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(EventStatus status) {
-        this.status = status;
-    }
-
-    public LocalDate getEventDate() {
-        return eventDate;
-    }
-
-    public void setEventDate(LocalDate eventDate) {
-        this.eventDate = eventDate;
-    }
-
-    public Integer getMinimumAge() {
-        return minimumAge;
-    }
-
-    public void setMinimumAge(Integer minimumAge) {
-        this.minimumAge = minimumAge;
-    }
-
-    public String getStreamingUrl() {
-        return streamingUrl;
-    }
-
-    public void setStreamingUrl(String streamingUrl) {
-        this.streamingUrl = streamingUrl;
-    }
-
-    public Venue getVenue() {
-        return venue;
-    }
-
-    public void setVenue(Venue venue) {
-        this.venue = venue;
-    }
-
-    public Set<Artist> getArtists() {
-        return artists;
-    }
-
-    public void setArtists(Set<Artist> artists) {
-        this.artists = artists;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Event event)) return false;
-        return eventCode != null && eventCode.equals(event.getEventCode());
+        return eventCode != null && eventCode.equals(event.eventCode);
     }
 
     @Override
     public int hashCode() {
         return eventCode != null ? eventCode.hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return "Event{id=%d, eventCode='%s', name='%s'}".formatted(id, eventCode, name);
     }
 }
