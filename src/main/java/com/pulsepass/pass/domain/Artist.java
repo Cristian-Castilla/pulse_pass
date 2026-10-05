@@ -2,11 +2,16 @@ package com.pulsepass.pass.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(
@@ -33,6 +38,9 @@ public class Artist {
     @Column(nullable = false)
     private Boolean active = true;
 
+    @ManyToMany(mappedBy = "artists", fetch = FetchType.LAZY)
+    private Set<Event> events = new HashSet<>();
+
     protected Artist() {
     }
 
@@ -43,11 +51,43 @@ public class Artist {
         this.active = active;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public String getStageName() {
+        return stageName;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public Set<Event> getEvents() {
+        return Set.copyOf(events);
+    }
+
+    void addEvent(Event event) {
+        events.add(event);
+    }
+
+    void removeEvent(Event event) {
+        events.remove(event);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Artist artist)) return false;
-        return stageName != null && stageName.equals(artist.stageName);
+        return stageName != null && stageName.equals(artist.getStageName());
     }
 
     @Override
