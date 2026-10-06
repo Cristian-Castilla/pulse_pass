@@ -62,7 +62,7 @@ class EventRepositoryIT extends PostgresContainerSupport {
         eventRepository.saveAndFlush(event);
 
         // Verificar vía query method que busca por venue.code
-        List<Event> events = eventRepository.findByVenue_Code("VEN-EVT-01");
+        List<Event> events = eventRepository.findByVenueCode("VEN-EVT-01");
         assertThat(events).hasSize(1);
         // equals() de Event usa eventCode, que es el identificador de negocio
         assertThat(events.get(0).equals(event)).isTrue();
