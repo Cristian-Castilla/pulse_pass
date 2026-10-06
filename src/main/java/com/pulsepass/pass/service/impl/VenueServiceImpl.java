@@ -29,7 +29,7 @@ public class VenueServiceImpl implements VenueService {
 
     @Override
     public List<VenueResponse> findActiveVenues(){
-        return venueRepository.findActiveVenues()
+        return venueRepository.findActiveTrueOrderByNameAsc()
                 .stream()
                 .map(mapper::toResponse)
                 .toList();

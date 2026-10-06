@@ -36,6 +36,7 @@ public class EventServiceImpl implements EventService {
         this.artistRepository = artistRepository;
     }
 
+    @Transactional
     @Override
     public EventResponse create(CreateEventRequest request){
         if(eventRepository.findByEventCode(request.eventCode()).isPresent()){
@@ -80,6 +81,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new ResourceNotFoundException("Event code doesn't exist: " + eventCode));
     }
 
+    @Transactional
     @Override
     public EventResponse publish(String eventCode){
 
@@ -102,6 +104,7 @@ public class EventServiceImpl implements EventService {
         return mapper.toResponse(saved);
     }
 
+    @Transactional
     public EventResponse addArtist(String eventCode, Long artistId){
         Event event = eventRepository.findByEventCode(eventCode).orElseThrow(() -> new ResourceNotFoundException("Cannot add artist: event code " + eventCode + " doesn't exist."));
 
