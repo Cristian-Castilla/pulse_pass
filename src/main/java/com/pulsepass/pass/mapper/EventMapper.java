@@ -13,6 +13,10 @@ public interface EventMapper {
             target = "venueCode",
             source = "venue.code"
     )
+    @Mapping(
+            target = "venueName",
+            source = "venue.name"
+    )
     EventResponse toResponse(Event event);
 
     EventSummaryResponse toSummary(Event event);
