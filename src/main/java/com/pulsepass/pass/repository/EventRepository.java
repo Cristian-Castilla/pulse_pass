@@ -16,9 +16,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     Optional<Event> findByEventCode(String eventCode);
 
+    boolean existsByEventCode(String eventCode);
+
     List<Event> findByStatusOrderByEventDateAsc(EventStatus status);
 
-    List<Event> findByVenue_Code(String venueCode);
+    List<Event> findByVenueCode(String venueCode);
 
     @Query("SELECT DISTINCT e FROM Event e JOIN e.artists a WHERE a.stageName = :stageName")
     List<Event> findByArtistStageName(@Param("stageName") String stageName);

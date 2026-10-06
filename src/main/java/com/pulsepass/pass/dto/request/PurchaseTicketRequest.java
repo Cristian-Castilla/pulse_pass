@@ -1,4 +1,4 @@
-package com.pulsepass.pass.service.dto.request;
+package com.pulsepass.pass.dto.request;
 
 import com.pulsepass.pass.domain.TicketType;
 

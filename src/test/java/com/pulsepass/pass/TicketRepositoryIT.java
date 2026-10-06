@@ -139,6 +139,10 @@ class TicketRepositoryIT extends PostgresContainerSupport {
     @Test
     void shouldFindTicketsForFutureEventsUsingJPQL() {
         // JPQL: JOIN FETCH t.event WHERE event.eventDate > :date ORDER BY eventDate
+        // Limpiar tickets creados por @BeforeEach para aislar este test
+        ticketRepository.deleteAll();
+        ticketRepository.flush();
+
         LocalDate today = LocalDate.now();
         Venue futureVenue = venueRepository.saveAndFlush(new Venue("VEN-FUT", "Future Venue",
                 "Medellín", "Dir", 500L, true));

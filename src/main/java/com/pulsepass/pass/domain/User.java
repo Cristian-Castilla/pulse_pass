@@ -3,6 +3,7 @@ package com.pulsepass.pass.domain;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -37,10 +38,10 @@ public class User {
     @Column(nullable = false)
     private Boolean active = true;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private UserProfile profile;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Ticket> tickets = new ArrayList<>();
 
     protected User() {
@@ -52,11 +53,45 @@ public class User {
         this.active = active;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public UserProfile getProfile() {
+        return profile;
+    }
+
+    public List<Ticket> getTickets() {
+        return List.copyOf(tickets);
+    }
+
+    public void assignProfile(UserProfile profile) {
+        this.profile = profile;
+        profile.setUser(this);
+    }
+
+    public void addTicket(Ticket ticket) {
+        tickets.add(ticket);
+        ticket.setUser(this);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof User user)) return false;
-        return username != null && username.equals(user.username);
+        return username != null && username.equals(user.getUsername());
     }
 
     @Override

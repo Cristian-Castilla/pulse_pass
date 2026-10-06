@@ -1,10 +1,10 @@
 package com.pulsepass.pass.domain;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,11 +12,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -58,17 +61,20 @@ public class Event {
     @Column(name = "streaming_url", length = 500)
     private String streamingUrl;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venue_id", nullable = false)
     private Venue venue;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "event_artists",
             joinColumns = @JoinColumn(name = "event_id"),
             inverseJoinColumns = @JoinColumn(name = "artist_id")
     )
     private Set<Artist> artists = new HashSet<>();
+
+    @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
+    private List<Ticket> tickets = new ArrayList<>();
 
     protected Event() {
     }
@@ -87,19 +93,80 @@ public class Event {
         this.venue = venue;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public String getEventCode() {
+        return eventCode;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public EventCategory getCategory() {
+        return category;
+    }
+
+    public EventStatus getStatus() {
+        return status;
+    }
+
+    public LocalDate getEventDate() {
+        return eventDate;
+    }
+
+    public Integer getMinimumAge() {
+        return minimumAge;
+    }
+
+    public String getStreamingUrl() {
+        return streamingUrl;
+    }
+
+    public Venue getVenue() {
+        return venue;
+    }
+
+    public void setVenue(Venue venue) {
+        this.venue = venue;
+    }
+
+    public void setStatus(EventStatus status) { this.status = status; }
+
+    public Set<Artist> getArtists() {
+        return Set.copyOf(artists);
+    }
+
+    public List<Ticket> getTickets() {
+        return List.copyOf(tickets);
+    }
+
     public void addArtist(Artist artist) {
-        this.artists.add(artist);
+        artists.add(artist);
+        artist.addEvent(this);
     }
 
     public void removeArtist(Artist artist) {
-        this.artists.remove(artist);
+        artists.remove(artist);
+        artist.removeEvent(this);
+    }
+
+    public void addTicket(Ticket ticket) {
+        tickets.add(ticket);
+        ticket.setEvent(this);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Event event)) return false;
-        return eventCode != null && eventCode.equals(event.eventCode);
+        return eventCode != null && eventCode.equals(event.getEventCode());
     }
 
     @Override
