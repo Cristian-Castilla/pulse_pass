@@ -12,5 +12,5 @@ public interface VenueRepository extends JpaRepository<Venue, Long> {
 
     Optional<Venue> findByCode(String code);
 
-    List<Venue> findActiveTrueOrderByNameAsc();
+    List<Venue> findByActiveTrueOrderByNameAsc();
 }

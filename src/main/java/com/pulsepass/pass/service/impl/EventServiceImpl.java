@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
@@ -81,6 +80,14 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new ResourceNotFoundException("Event code doesn't exist: " + eventCode));
     }
 
+    @Override
+    public List<EventSummaryResponse> findPublishedEvents() {
+        return eventRepository.findByStatusOrderByEventDateAsc(EventStatus.PUBLISHED)
+                .stream()
+                .map(mapper::toSummary)
+                .toList();
+    }
+
     @Transactional
     @Override
     public EventResponse publish(String eventCode){
@@ -105,6 +112,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Transactional
+    @Override
     public EventResponse addArtist(String eventCode, Long artistId){
         Event event = eventRepository.findByEventCode(eventCode).orElseThrow(() -> new ResourceNotFoundException("Cannot add artist: event code " + eventCode + " doesn't exist."));
 
@@ -125,8 +133,12 @@ public class EventServiceImpl implements EventService {
         return mapper.toResponse(saved);
     }
 
-    public List<EventSummaryResponse> findByArtist(String stageName){
-
+    @Override
+    public List<EventSummaryResponse> findByArtist(String stageName) {
+        return eventRepository.findByArtistStageName(stageName)
+                .stream()
+                .map(mapper::toSummary)
+                .toList();
     }
 
 }

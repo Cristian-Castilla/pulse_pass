@@ -108,6 +108,10 @@ public class Ticket {
         this.event = event;
     }
 
+    public void setStatus(TicketStatus status) {
+        this.status = status;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

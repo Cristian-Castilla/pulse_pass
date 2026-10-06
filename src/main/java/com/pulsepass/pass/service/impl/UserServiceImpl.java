@@ -13,7 +13,6 @@ import com.pulsepass.pass.repository.UserRepository;
 import com.pulsepass.pass.service.UserService;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.attribute.UserPrincipal;
 import java.time.LocalDate;
 
 @Transactional(readOnly = true)

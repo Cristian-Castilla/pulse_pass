@@ -2,6 +2,7 @@ package com.pulsepass.pass.mapper;
 
 import com.pulsepass.pass.domain.Event;
 import com.pulsepass.pass.dto.response.EventResponse;
+import com.pulsepass.pass.dto.response.EventSummaryResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -10,7 +11,9 @@ public interface EventMapper {
 
     @Mapping(
             target = "venueCode",
-            source = "Venue.code"
+            source = "venue.code"
     )
     EventResponse toResponse(Event event);
+
+    EventSummaryResponse toSummary(Event event);
 }
