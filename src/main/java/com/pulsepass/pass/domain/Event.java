@@ -137,6 +137,8 @@ public class Event {
         this.venue = venue;
     }
 
+    public void setStatus(EventStatus status) { this.status = status; }
+
     public Set<Artist> getArtists() {
         return Set.copyOf(artists);
     }
