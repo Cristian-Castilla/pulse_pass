@@ -12,9 +12,10 @@ import com.pulsepass.pass.repository.UserProfileRepository;
 import com.pulsepass.pass.repository.UserRepository;
 import com.pulsepass.pass.service.UserService;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
+@Service
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 

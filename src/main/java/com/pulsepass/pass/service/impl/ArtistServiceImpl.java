@@ -6,9 +6,10 @@ import com.pulsepass.pass.mapper.ArtistMapper;
 import com.pulsepass.pass.repository.ArtistRepository;
 import com.pulsepass.pass.service.ArtistService;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.stereotype.Service;
 import java.util.List;
 
+@Service
 @Transactional(readOnly = true)
 public class ArtistServiceImpl implements ArtistService {
 

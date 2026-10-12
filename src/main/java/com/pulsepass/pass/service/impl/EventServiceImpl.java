@@ -16,10 +16,11 @@ import com.pulsepass.pass.repository.EventRepository;
 import com.pulsepass.pass.repository.VenueRepository;
 import com.pulsepass.pass.service.EventService;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 
+@Service
 @Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
 
