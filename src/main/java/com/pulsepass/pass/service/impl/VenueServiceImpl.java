@@ -6,9 +6,10 @@ import com.pulsepass.pass.mapper.VenueMapper;
 import com.pulsepass.pass.repository.VenueRepository;
 import com.pulsepass.pass.service.VenueService;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.stereotype.Service;
 import java.util.List;
 
+@Service
 @Transactional(readOnly = true)
 public class VenueServiceImpl implements VenueService {
 

@@ -17,14 +17,14 @@ import com.pulsepass.pass.repository.UserRepository;
 import com.pulsepass.pass.service.PriceCalculator;
 import com.pulsepass.pass.service.TicketService;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
 import java.util.UUID;
-
+@Service
 @Transactional(readOnly = true)
 public class TicketServiceImpl implements TicketService {
 
