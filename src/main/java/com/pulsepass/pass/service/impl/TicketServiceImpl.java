@@ -19,7 +19,6 @@ import com.pulsepass.pass.service.TicketService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
@@ -69,7 +68,7 @@ public class TicketServiceImpl implements TicketService {
         }
 
         // BR-TICKET-005: Fecha futura
-        if (event.getEventDate().isBefore(LocalDate.now())) {
+        if (event.getEventDate().isBefore(LocalDateTime.now())) {
             throw new BusinessRuleException("Event already occurred: " + request.eventCode());
         }
 
@@ -79,7 +78,8 @@ public class TicketServiceImpl implements TicketService {
             if (profile == null || profile.getBirthDate() == null) {
                 throw new BusinessRuleException("User profile required to verify age: " + request.userEmail());
             }
-            int age = Period.between(profile.getBirthDate(), event.getEventDate()).getYears();
+            // BR-TICKET-006: la edad se evalúa sobre la fecha del evento (sin la hora)
+            int age = Period.between(profile.getBirthDate(), event.getEventDate().toLocalDate()).getYears();
             if (age < event.getMinimumAge()) {
                 throw new BusinessRuleException("User does not meet minimum age. Required: "
                         + event.getMinimumAge() + ", actual: " + age);
@@ -157,7 +157,7 @@ public class TicketServiceImpl implements TicketService {
         }
 
         // BR-TICKET-012: No cancelar después de la fecha del evento
-        if (ticket.getEvent().getEventDate().isBefore(LocalDate.now())) {
+        if (ticket.getEvent().getEventDate().isBefore(LocalDateTime.now())) {
             throw new BusinessRuleException("Cannot cancel ticket after event date: " + ticketCode);
         }
 

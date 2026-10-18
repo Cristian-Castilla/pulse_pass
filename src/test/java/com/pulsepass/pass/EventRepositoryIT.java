@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,7 +58,7 @@ class EventRepositoryIT extends PostgresContainerSupport {
         // Venue 1:N Event — Event debe estar asociado a un venue
         Event event = new Event("EVT-01", "Evento de prueba",
                 "Descripción", EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(1), null, null, venue);
+                LocalDateTime.now().plusMonths(1), null, null, venue);
         eventRepository.saveAndFlush(event);
 
         // Verificar vía query method que busca por venue.code
@@ -73,13 +73,13 @@ class EventRepositoryIT extends PostgresContainerSupport {
         // Query Method: findByStatusOrderByEventDateAsc
         Event evt1 = new Event("EVT-002", "Evento posterior",
                 "Desc", EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(5), null, null, venue);
+                LocalDateTime.now().plusMonths(5), null, null, venue);
         Event evt2 = new Event("EVT-001", "Evento anterior",
                 "Desc", EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(1), null, null, venue);
+                LocalDateTime.now().plusMonths(1), null, null, venue);
         Event evt3 = new Event("EVT-003", "Evento draft",
                 "Desc", EventCategory.MUSIC, EventStatus.DRAFT,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
         eventRepository.saveAllAndFlush(List.of(evt1, evt2, evt3));
 
         List<Event> published = eventRepository.findByStatusOrderByEventDateAsc(EventStatus.PUBLISHED);
@@ -94,7 +94,7 @@ class EventRepositoryIT extends PostgresContainerSupport {
         // Query Method: findByEventCode
         eventRepository.saveAndFlush(new Event("CMF-2026", "Caribbean Music Fest",
                 "Festival", EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue));
+                LocalDateTime.now().plusMonths(3), null, null, venue));
 
         assertThat(eventRepository.findByEventCode("CMF-2026")).isPresent();
     }
@@ -104,11 +104,11 @@ class EventRepositoryIT extends PostgresContainerSupport {
         // PRD: eventCode UNIQUE, eventCode NOT NULL
         eventRepository.saveAndFlush(new Event("EVT-DUP", "Evento original",
                 "Desc", EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(1), null, null, venue));
+                LocalDateTime.now().plusMonths(1), null, null, venue));
 
         Event duplicate = new Event("EVT-DUP", "Evento duplicado",
                 "Desc", EventCategory.MUSIC, EventStatus.DRAFT,
-                LocalDate.now().plusMonths(2), null, null, venue);
+                LocalDateTime.now().plusMonths(2), null, null, venue);
 
         assertThrows(DataIntegrityViolationException.class,
                 () -> eventRepository.saveAndFlush(duplicate));
@@ -122,7 +122,7 @@ class EventRepositoryIT extends PostgresContainerSupport {
 
         Event event = new Event("EVT-ART", "Evento con artistas",
                 "Desc", EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
         event.addArtist(solarBeat);
         event.addArtist(neonWaves);
         eventRepository.saveAndFlush(event);
@@ -141,7 +141,7 @@ class EventRepositoryIT extends PostgresContainerSupport {
 
         Event event = new Event("EVT-ART-JPQL", "Evento JPQL",
                 "Desc", EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
         event.addArtist(caribbeanSound);
         eventRepository.saveAndFlush(event);
 
@@ -157,7 +157,7 @@ class EventRepositoryIT extends PostgresContainerSupport {
 
         Event event = new Event("EVT-CITY-ART", "Evento ciudad+artista",
                 "Desc", EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
         event.addArtist(solarBeat);
         eventRepository.saveAndFlush(event);
 
@@ -173,12 +173,12 @@ class EventRepositoryIT extends PostgresContainerSupport {
 
         Event event = new Event("EVT-REC", "Evento recomendado",
                 "Desc", EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
         event.addArtist(neonWaves);
         eventRepository.saveAndFlush(event);
 
         List<Event> recommended = eventRepository.findRecommendedEvents(
-                LocalDate.now(), "Bogotá", "neon");
+                LocalDateTime.now(), "Bogotá", "neon");
         assertThat(recommended).hasSize(1);
         assertThat(recommended.get(0).equals(event)).isTrue();
     }

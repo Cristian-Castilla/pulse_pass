@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,7 +37,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
               AND LOWER(a.stageName) LIKE LOWER(CONCAT('%', :text, '%'))
             ORDER BY e.eventDate ASC
             """)
-    List<Event> findRecommendedEvents(@Param("date") LocalDate date,
+    List<Event> findRecommendedEvents(@Param("date") LocalDateTime date,
                                       @Param("city") String city,
                                       @Param("text") String text);
 }

@@ -81,6 +81,27 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+    /**
+     * PRD de Seguridad §13: "Login incorrecto → 401 Unauthorized".
+     * PRD §10 FR-SEC-AUTH-003: "Retorna 401 genérico, no informa si el usuario existe".
+     *
+     * <p>Se maneja aquí y no en el AuthenticationEntryPoint porque el login se resuelve dentro del
+     * DispatcherServlet: el EntryPoint solo atiende los errores que ocurren en el filtro de seguridad,
+     * antes de llegar al controlador (PRD §13: "las excepciones antes de DispatcherServlet no quedan
+     * cubiertas automáticamente por @RestControllerAdvice").
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
+        ErrorResponse body = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                ex.getMessage(),
+                Map.of());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
         ErrorResponse body = new ErrorResponse(

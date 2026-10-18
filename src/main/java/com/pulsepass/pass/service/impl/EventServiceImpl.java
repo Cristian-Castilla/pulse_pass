@@ -17,7 +17,7 @@ import com.pulsepass.pass.repository.VenueRepository;
 import com.pulsepass.pass.service.EventService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -49,8 +49,8 @@ public class EventServiceImpl implements EventService {
             throw new BusinessRuleException("Venue must be active at the moment of the creation: " + request.eventCode());
         }
 
-        if(request.eventDate().isBefore(LocalDate.now())){
-            throw new BusinessRuleException("Event date should be future at the moment of the creation: " + LocalDate.now());
+        if(request.eventDate().isBefore(LocalDateTime.now())){
+            throw new BusinessRuleException("Event date should be future at the moment of the creation: " + LocalDateTime.now());
         }
 
         if(request.minimumAge() < 0){
@@ -99,7 +99,7 @@ public class EventServiceImpl implements EventService {
             throw new BusinessRuleException("Only DRAFT events can be published, but event " + eventCode + " is " + saved.getStatus());
         }
 
-        if(saved.getEventDate().isBefore(LocalDate.now())){
+        if(saved.getEventDate().isBefore(LocalDateTime.now())){
             throw new BusinessRuleException("Cannot publish event " + eventCode + ": event date must be in the future, but was " + saved.getEventDate());
         }
 

@@ -42,7 +42,7 @@ class UserServiceImplTest {
         // ARRANGE
         RegisterUserRequest request = new RegisterUserRequest(
                 "andrea", "andrea@example.com", "Andrea", "García",
-                "3001234567", "Bogotá", LocalDate.of(1995, 5, 15));
+                "3001234567", "Bogotá", LocalDate.of(1995, 5, 15), "UnaFraseSeguraLarga2026!");
 
         User user = new User("andrea", "andrea@example.com", true);
         UserProfile profile = new UserProfile(
@@ -72,7 +72,7 @@ class UserServiceImplTest {
         // ARRANGE
         RegisterUserRequest request = new RegisterUserRequest(
                 "andrea", "andrea@example.com", "Andrea", "García",
-                "3001234567", "Bogotá", LocalDate.of(1995, 5, 15));
+                "3001234567", "Bogotá", LocalDate.of(1995, 5, 15), "UnaFraseSeguraLarga2026!");
 
         when(userRepository.findByUsername("andrea")).thenReturn(Optional.of(new User("andrea", "andrea@example.com", true)));
 
@@ -90,7 +90,7 @@ class UserServiceImplTest {
         // ARRANGE
         RegisterUserRequest request = new RegisterUserRequest(
                 "andrea", "andrea@example.com", "Andrea", "García",
-                "3001234567", "Bogotá", LocalDate.of(1995, 5, 15));
+                "3001234567", "Bogotá", LocalDate.of(1995, 5, 15), "UnaFraseSeguraLarga2026!");
 
         when(userRepository.findByUsername("andrea")).thenReturn(Optional.empty());
         when(userRepository.findByEmailIgnoreCase("andrea@example.com"))
@@ -111,7 +111,7 @@ class UserServiceImplTest {
         // ARRANGE
         RegisterUserRequest request = new RegisterUserRequest(
                 "andrea", "andrea@example.com", "Andrea", "García",
-                "3001234567", "Bogotá", LocalDate.now().plusDays(1));
+                "3001234567", "Bogotá", LocalDate.now().plusDays(1), "UnaFraseSeguraLarga2026!");
 
         when(userRepository.findByUsername("andrea")).thenReturn(Optional.empty());
         when(userRepository.findByEmailIgnoreCase("andrea@example.com")).thenReturn(Optional.empty());

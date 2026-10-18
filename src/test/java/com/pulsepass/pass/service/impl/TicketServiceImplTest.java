@@ -70,7 +70,7 @@ class TicketServiceImplTest {
                 "Santa Marta", "Carrera 1", 5000L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
 
         Ticket ticket = new Ticket("TCK-001", TicketType.VIP,
                 new BigDecimal("250000"), TicketStatus.PAID,
@@ -140,7 +140,7 @@ class TicketServiceImplTest {
                 "Santa Marta", "Carrera 1", 5000L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.DRAFT,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
 
         when(userRepository.findByEmailIgnoreCase("andrea@example.com")).thenReturn(Optional.of(user));
         when(eventRepository.findByEventCode("CMF-2026")).thenReturn(Optional.of(event));
@@ -163,7 +163,7 @@ class TicketServiceImplTest {
                 "Santa Marta", "Carrera 1", 5000L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.CANCELLED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
 
         when(userRepository.findByEmailIgnoreCase("andrea@example.com")).thenReturn(Optional.of(user));
         when(eventRepository.findByEventCode("CMF-2026")).thenReturn(Optional.of(event));
@@ -191,7 +191,7 @@ class TicketServiceImplTest {
                 "Santa Marta", "Carrera 1", 5000L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), 18, null, venue);
+                LocalDateTime.now().plusMonths(3), 18, null, venue);
 
         when(userRepository.findByEmailIgnoreCase("laura@example.com")).thenReturn(Optional.of(user));
         when(eventRepository.findByEventCode("CMF-2026")).thenReturn(Optional.of(event));
@@ -214,7 +214,7 @@ class TicketServiceImplTest {
                 "Santa Marta", "Carrera 1", 2L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
 
         when(userRepository.findByEmailIgnoreCase("andrea@example.com")).thenReturn(Optional.of(user));
         when(eventRepository.findByEventCode("CMF-2026")).thenReturn(Optional.of(event));
@@ -238,7 +238,7 @@ class TicketServiceImplTest {
                 "Santa Marta", "Carrera 1", 2L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
 
         Ticket ticket = new Ticket("TCK-002", TicketType.GENERAL,
                 new BigDecimal("100000"), TicketStatus.PAID,
@@ -275,7 +275,7 @@ class TicketServiceImplTest {
                 "Santa Marta", "Carrera 1", 5000L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
         User user = new User("andrea", "andrea@example.com", true);
         Ticket ticket = new Ticket("TCK-001", TicketType.VIP,
                 new BigDecimal("250000"), TicketStatus.PAID,
@@ -304,7 +304,7 @@ class TicketServiceImplTest {
                 "Santa Marta", "Carrera 1", 5000L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
         User user = new User("andrea", "andrea@example.com", true);
         Ticket ticket = new Ticket("TCK-001", TicketType.VIP,
                 new BigDecimal("250000"), TicketStatus.USED,
@@ -326,7 +326,7 @@ class TicketServiceImplTest {
                 "Santa Marta", "Carrera 1", 5000L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
         User user = new User("andrea", "andrea@example.com", true);
         Ticket ticket = new Ticket("TCK-001", TicketType.VIP,
                 new BigDecimal("250000"), TicketStatus.PAID,
@@ -355,7 +355,7 @@ class TicketServiceImplTest {
                 "Santa Marta", "Carrera 1", 5000L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
         User user = new User("andrea", "andrea@example.com", true);
         Ticket ticket = new Ticket("TCK-001", TicketType.VIP,
                 new BigDecimal("250000"), TicketStatus.CANCELLED,
