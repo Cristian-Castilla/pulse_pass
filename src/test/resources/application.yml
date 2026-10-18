@@ -1,0 +1,18 @@
+# Configuración de tests.
+#
+# PRD de Seguridad §14.2: "En pruebas, usar clave exclusiva del perfil de tests".
+# PRD §17.3: "En tests usar contraseñas y secretos exclusivamente ficticios y no reciclar
+# credenciales de producción".
+#
+# La clave de abajo es ficticia, de 48 bytes en Base64, y solo existe para que el contexto de Spring
+# arranque durante los tests. No es una clave real y no debe usarse fuera de este archivo.
+#
+# Generada con: head -c 48 /dev/urandom | base64
+# y fijada aquí para que los tests sean deterministas (la misma clave en cada ejecución).
+pulsepass:
+  security:
+    jwt:
+      issuer: pulsepass-api
+      # Clave ficticia de 48 bytes (384 bits). Supera el mínimo de 32 bytes del PRD §12.3.
+      secret-base64: "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWYwMTIzNDU2Nzg5YWJjZGVm"
+      access-token-ttl: PT15M
