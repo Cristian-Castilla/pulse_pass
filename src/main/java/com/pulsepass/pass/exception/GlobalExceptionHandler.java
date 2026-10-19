@@ -1,6 +1,7 @@
 package com.pulsepass.pass.exception;
 
 import com.pulsepass.pass.dto.response.ErrorResponse;
+import com.pulsepass.pass.exception.AccessDeniedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -79,6 +80,52 @@ public class GlobalExceptionHandler {
                 Map.of());
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    /**
+     * PRD de Seguridad §13: "Login incorrecto → 401 Unauthorized".
+     * PRD §10 FR-SEC-AUTH-003: "Retorna 401 genérico, no informa si el usuario existe".
+     *
+     * <p>Se maneja aquí y no en el AuthenticationEntryPoint porque el login se resuelve dentro del
+     * DispatcherServlet: el EntryPoint solo atiende los errores que ocurren en el filtro de seguridad,
+     * antes de llegar al controlador (PRD §13: "las excepciones antes de DispatcherServlet no quedan
+     * cubiertas automáticamente por @RestControllerAdvice").
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException ex) {
+        ErrorResponse body = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                ex.getMessage(),
+                Map.of());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+    /**
+     * PRD de Seguridad §13: "Usuario válido sin rol requerido → 403 Forbidden" y "Usuario intenta
+     * ticket ajeno → 403 → Servicio de autorización + handler".
+     *
+     * <p>Se maneja aquí porque la decisión de propiedad se toma en el
+     * {@code AuthorizationService}, dentro del {@code DispatcherServlet}. El
+     * {@code RestAccessDeniedHandler} atiende únicamente los errores de la cadena de filtros, que
+     * ocurren antes de llegar al controlador (PRD §13: "las excepciones antes de DispatcherServlet
+     * no quedan cubiertas automáticamente por @RestControllerAdvice").
+     *
+     * <p>El mensaje es el uniforme del PRD §8 SEC-009: no revela si el recurso existe ni quién es
+     * su dueño.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+        ErrorResponse body = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                ex.getMessage(),
+                Map.of());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 
     @ExceptionHandler(Exception.class)

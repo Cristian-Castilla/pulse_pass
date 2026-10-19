@@ -68,6 +68,72 @@
             <scope>test</scope>
         </dependency>
 
+        <!--
+          PRD de Seguridad §14.1 pide spring-security-test.
+
+          Desviación D-02 del plan: se agrega `spring-boot-starter-security-test` y NO el
+          artefacto literal del PRD. Verificado en Maven Central y contra el BOM de Boot 4.1.1:
+          `spring-security-test:7.1.1` existe y está gestionado, pero con solo esa dependencia
+          `@WithMockUser` NO se auto-configura en tests de Spring Boot: el autoconfigure de
+          seguridad vive en el módulo nuevo `spring-boot-security-test`, que es el que arrastra
+          este starter. Sin él, los tests de seguridad requieren configuración manual.
+
+          Nota: los tests de este proyecto NO usan @WithMockUser. Autentican con un Bearer real
+          emitido por AuthService.login(...) contra la base, que es evidencia más fuerte (ejercita
+          el filtro, la validación de firma y la carga de identidad). El starter se agrega porque el
+          PRD lo pide y porque es la vía estándar si en el futuro se necesita identidad simulada.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ==================================================================== -->
+        <!-- Fase 4 — Seguridad                                                  -->
+        <!-- ==================================================================== -->
+
+        <!--
+          PRD de Seguridad §14.1 pide spring-boot-starter-security.
+          Gestionado por el BOM de Boot 4.1.1 (verificado: existe como starter
+          gestionado, no requiere versión explícita).
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!--
+          PRD de Seguridad §14.1: JJWT 0.13.0.
+          La versión va explícita a propósito: grep jsonwebtoken sobre
+          spring-boot-dependencies-4.1.1.pom = 0 coincidencias, es decir el BOM
+          NO gestiona io.jsonwebtoken. 0.13.0 es la última publicada en Central
+          (verificado contra maven-metadata.xml).
+        -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.13.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.13.0</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.13.0</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ==================================================================== -->
+        <!-- Fin Fase 4 — Seguridad                                              -->
+        <!-- ==================================================================== -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-webmvc-test</artifactId>

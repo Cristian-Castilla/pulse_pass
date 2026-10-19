@@ -33,3 +33,11 @@ build/
 .vscode/
 .cmd
 
+### Secretos locales ###
+# El archivo que carga Spring Boot es `.env.properties` (ver application.yml:
+# `spring.config.import: optional:file:.env.properties`). El patrón `.env*` cubre
+# cualquier variante y excluye `.env.properties` con la clave real.
+# `!.env.example` mantiene versionada la plantilla, que NO contiene secretos.
+.env*
+!.env.example
+

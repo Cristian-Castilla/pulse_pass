@@ -10,6 +10,7 @@ import com.pulsepass.pass.exception.ResourceNotFoundException;
 import com.pulsepass.pass.mapper.UserMapper;
 import com.pulsepass.pass.repository.UserProfileRepository;
 import com.pulsepass.pass.repository.UserRepository;
+import com.pulsepass.pass.service.AuthorizationService;
 import com.pulsepass.pass.service.UserService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
@@ -22,11 +23,15 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final UserMapper mapper;
+    private final AuthorizationService authorizationService;
 
-    public UserServiceImpl(UserRepository userRepository, UserMapper mapper, UserProfileRepository userProfileRepository){
+    public UserServiceImpl(UserRepository userRepository, UserMapper mapper,
+                           UserProfileRepository userProfileRepository,
+                           AuthorizationService authorizationService){
         this.userRepository = userRepository;
         this.mapper = mapper;
         this.userProfileRepository = userProfileRepository;
+        this.authorizationService = authorizationService;
     }
 
     @Override
@@ -68,14 +73,23 @@ public class UserServiceImpl implements UserService {
     }
 
     public UserResponse findByEmail(String email){
-        return userRepository.findByEmailIgnoreCase(email)
-                .map(mapper::toResponse)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Email doesn't exist: " + email));
+
+        // PRD §11 USR-02: "Propio usuario, o ADMIN con propósito autorizado".
+        // La comparación es por ID persistente (PRD §11.1), no por string de email.
+        authorizationService.requireOwnerOrPrivileged(user.getId());
+
+        return mapper.toResponse(user);
     }
 
     public UserResponse findByUsername(String username){
-        return userRepository.findByUsername(username)
-                .map(mapper::toResponse)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Username doesn't exist: " + username));
+
+        // PRD §11 USR-03: "Propio usuario, o ADMIN con propósito autorizado"
+        authorizationService.requireOwnerOrPrivileged(user.getId());
+
+        return mapper.toResponse(user);
     }
 }

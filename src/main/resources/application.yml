@@ -3,6 +3,28 @@ spring:
   application:
     name: pulsepass
 
+  # ---------------------------------------------------------------------
+  # Fase 4 — Seguridad (PRD §14.2)
+  #
+  # El emisor y la duración tienen default. La clave NO: su ausencia detiene
+  # el arranque (ver JwtServiceImpl.resolveKey). PRD §8 SEC-004: "Clave JJWT
+  # desde entorno; prohibida en código fuente".
+  #
+  # Generar una clave (PowerShell):
+  #   [Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Max 256 }))
+  # Generar una clave (bash):
+  #   head -c 48 /dev/urandom | base64
+  # ---------------------------------------------------------------------
+  config:
+    import: "optional:file:.env.properties"
+
+pulsepass:
+  security:
+    jwt:
+      issuer: ${PULSEPASS_JWT_ISSUER:pulsepass-api}
+      secret-base64: ${PULSEPASS_JWT_SECRET_BASE64}
+      access-token-ttl: ${PULSEPASS_JWT_ACCESS_TOKEN_TTL:PT15M}
+
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/pulsepass}
     username: ${DB_USER:postgres}

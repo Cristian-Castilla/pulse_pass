@@ -19,7 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +41,16 @@ class EventServiceImplTest {
     @Mock
     private EventMapper eventMapper;
 
+    /**
+     * La Fase 4 añadió {@link com.pulsepass.pass.service.AuthorizationService} a
+     * {@code EventServiceImpl} para el filtrado de borradores (PRD §11 EVT-02 y EVT-06). Sin rol
+     * el mock devuelve {@code false}, que es el comportamiento por defecto de un mock de Mockito
+     * para {@code boolean}, así que estos tests siguen verificando las reglas de negocio de la
+     * Fase 2. La visibilidad de borradores se prueba en {@code DraftVisibilityTest}.
+     */
+    @Mock
+    private com.pulsepass.pass.service.AuthorizationService authorizationService;
+
     @InjectMocks
     private EventServiceImpl eventService;
 
@@ -51,11 +61,11 @@ class EventServiceImplTest {
                 "Santa Marta", "Carrera 1", 5000L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026",
                 "Festival", EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
         EventResponse expectedResponse = new EventResponse(
                 1L, "CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), 0, "VEN-SMR-01",
+                LocalDateTime.now().plusMonths(3), 0, "VEN-SMR-01",
                 "Marina Convention Center", null);
 
         when(eventRepository.findByEventCode("CMF-2026")).thenReturn(Optional.of(event));
@@ -88,17 +98,17 @@ class EventServiceImplTest {
         // ARRANGE
         CreateEventRequest request = new CreateEventRequest(
                 "CMF-2026", "Caribbean Music Fest 2026", "Festival",
-                EventCategory.MUSIC, LocalDate.now().plusMonths(3), 0, "VEN-SMR-01");
+                EventCategory.MUSIC, LocalDateTime.now().plusMonths(3), 0, "VEN-SMR-01");
 
         Venue venue = new Venue("VEN-SMR-01", "Marina Convention Center",
                 "Santa Marta", "Carrera 1", 5000L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.DRAFT,
-                LocalDate.now().plusMonths(3), 0, null, venue);
+                LocalDateTime.now().plusMonths(3), 0, null, venue);
         EventResponse expectedResponse = new EventResponse(
                 1L, "CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.DRAFT,
-                LocalDate.now().plusMonths(3), 0, "VEN-SMR-01",
+                LocalDateTime.now().plusMonths(3), 0, "VEN-SMR-01",
                 "Marina Convention Center", null);
 
         when(eventRepository.findByEventCode("CMF-2026")).thenReturn(Optional.empty());
@@ -121,7 +131,7 @@ class EventServiceImplTest {
         // ARRANGE
         CreateEventRequest request = new CreateEventRequest(
                 "CMF-2026", "Caribbean Music Fest 2026", "Festival",
-                EventCategory.MUSIC, LocalDate.now().plusMonths(3), 0, "NO-EXISTE");
+                EventCategory.MUSIC, LocalDateTime.now().plusMonths(3), 0, "NO-EXISTE");
 
         when(eventRepository.findByEventCode("CMF-2026")).thenReturn(Optional.empty());
         when(venueRepository.findByCode("NO-EXISTE")).thenReturn(Optional.empty());
@@ -140,7 +150,7 @@ class EventServiceImplTest {
         // ARRANGE
         CreateEventRequest request = new CreateEventRequest(
                 "CMF-2026", "Caribbean Music Fest 2026", "Festival",
-                EventCategory.MUSIC, LocalDate.now().plusMonths(3), 0, "VEN-INACTIVO");
+                EventCategory.MUSIC, LocalDateTime.now().plusMonths(3), 0, "VEN-INACTIVO");
 
         Venue venue = new Venue("VEN-INACTIVO", "Venue Inactivo",
                 "Bogotá", "Dir 1", 100L, false);
@@ -162,7 +172,7 @@ class EventServiceImplTest {
         // ARRANGE
         CreateEventRequest request = new CreateEventRequest(
                 "CMF-2026", "Caribbean Music Fest 2026", "Festival",
-                EventCategory.MUSIC, LocalDate.now().minusDays(1), 0, "VEN-SMR-01");
+                EventCategory.MUSIC, LocalDateTime.now().minusDays(1), 0, "VEN-SMR-01");
 
         Venue venue = new Venue("VEN-SMR-01", "Marina Convention Center",
                 "Santa Marta", "Carrera 1", 5000L, true);
@@ -186,11 +196,11 @@ class EventServiceImplTest {
                 "Santa Marta", "Carrera 1", 5000L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.DRAFT,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
         EventResponse expectedResponse = new EventResponse(
                 1L, "CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), 0, "VEN-SMR-01",
+                LocalDateTime.now().plusMonths(3), 0, "VEN-SMR-01",
                 "Marina Convention Center", null);
 
         when(eventRepository.findByEventCode("CMF-2026")).thenReturn(Optional.of(event));
@@ -211,7 +221,7 @@ class EventServiceImplTest {
                 "Santa Marta", "Carrera 1", 5000L, true);
         Event event = new Event("CMF-2026", "Caribbean Music Fest 2026", "Festival",
                 EventCategory.MUSIC, EventStatus.CANCELLED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
 
         when(eventRepository.findByEventCode("CMF-2026")).thenReturn(Optional.of(event));
 

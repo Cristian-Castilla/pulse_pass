@@ -3,6 +3,7 @@ package com.pulsepass.pass.service.impl;
 import com.pulsepass.pass.domain.Artist;
 import com.pulsepass.pass.domain.Event;
 import com.pulsepass.pass.domain.EventStatus;
+import com.pulsepass.pass.domain.Role;
 import com.pulsepass.pass.domain.Venue;
 import com.pulsepass.pass.dto.request.CreateEventRequest;
 import com.pulsepass.pass.dto.response.EventResponse;
@@ -14,10 +15,11 @@ import com.pulsepass.pass.mapper.EventMapper;
 import com.pulsepass.pass.repository.ArtistRepository;
 import com.pulsepass.pass.repository.EventRepository;
 import com.pulsepass.pass.repository.VenueRepository;
+import com.pulsepass.pass.service.AuthorizationService;
 import com.pulsepass.pass.service.EventService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -28,12 +30,16 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final VenueRepository venueRepository;
     private final ArtistRepository artistRepository;
+    private final AuthorizationService authorizationService;
 
-    public EventServiceImpl(EventMapper mapper, EventRepository eventRepository, VenueRepository venueRepository, ArtistRepository artistRepository){
+    public EventServiceImpl(EventMapper mapper, EventRepository eventRepository,
+                            VenueRepository venueRepository, ArtistRepository artistRepository,
+                            AuthorizationService authorizationService){
         this.mapper = mapper;
         this.eventRepository = eventRepository;
         this.venueRepository = venueRepository;
         this.artistRepository = artistRepository;
+        this.authorizationService = authorizationService;
     }
 
     @Transactional
@@ -49,8 +55,8 @@ public class EventServiceImpl implements EventService {
             throw new BusinessRuleException("Venue must be active at the moment of the creation: " + request.eventCode());
         }
 
-        if(request.eventDate().isBefore(LocalDate.now())){
-            throw new BusinessRuleException("Event date should be future at the moment of the creation: " + LocalDate.now());
+        if(request.eventDate().isBefore(LocalDateTime.now())){
+            throw new BusinessRuleException("Event date should be future at the moment of the creation: " + LocalDateTime.now());
         }
 
         if(request.minimumAge() < 0){
@@ -76,9 +82,35 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventResponse findByCode(String eventCode){
-        return eventRepository.findByEventCode(eventCode)
-                .map(mapper::toResponse)
+        // PRD §11 EVT-02: "Público solo si publicado; para otros estados STAFF/ADMIN, evitando
+        // revelar borradores".
+        //
+        // Un borrador NO se expone a un usuario sin rol: se resuelve como inexistente (404 de
+        // negocio) y no como 403, para no revelar que existe. STAFF y ADMIN sí lo ven.
+        //
+        // La regla se evalúa en el servicio y no en la ruta: SecurityConfig no puede expresar
+        // "público si el recurso cumple una condición de estado", y PRD §14.3 adv. 1 lo dice
+        // explícitamente ("la visibilidad de eventos no publicados deben implementarse en
+        // Services/seguridad a nivel de método").
+        Event event = eventRepository.findByEventCode(eventCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Event code doesn't exist: " + eventCode));
+
+        if (event.getStatus() != EventStatus.PUBLISHED && !canSeeDrafts()) {
+            throw new ResourceNotFoundException("Event code doesn't exist: " + eventCode);
+        }
+
+        return mapper.toResponse(event);
+    }
+
+    /**
+     * Indica si la identidad actual puede ver eventos que no están publicados.
+     *
+     * PRD §11 EVT-02: "para otros estados STAFF/ADMIN". La decisión de D1 (403 con mensaje genérico)
+     * se aplica a recursos ajenos; aquí el borrador se reporta como inexistente, que es la forma de
+     * no revelar su existencia sin inventar un 404 falso en la ruta.
+     */
+    private boolean canSeeDrafts() {
+        return authorizationService.hasRole(Role.STAFF) || authorizationService.hasRole(Role.ADMIN);
     }
 
     @Override
@@ -99,7 +131,7 @@ public class EventServiceImpl implements EventService {
             throw new BusinessRuleException("Only DRAFT events can be published, but event " + eventCode + " is " + saved.getStatus());
         }
 
-        if(saved.getEventDate().isBefore(LocalDate.now())){
+        if(saved.getEventDate().isBefore(LocalDateTime.now())){
             throw new BusinessRuleException("Cannot publish event " + eventCode + ": event date must be in the future, but was " + saved.getEventDate());
         }
 
@@ -136,7 +168,14 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventSummaryResponse> findByArtist(String stageName) {
-        return eventRepository.findByArtistStageName(stageName)
+        // PRD §11 EVT-06: "Público únicamente para eventos publicados; otros estados requieren
+        // STAFF/ADMIN". La consulta se filtra por publicación en vez de traer todo y descartar en
+        // memoria: el filtrado en la base es lo que evita exponer borradores si el conjunto crece.
+        EventStatus status = canSeeDrafts() ? null : EventStatus.PUBLISHED;
+
+        return (status == null
+                ? eventRepository.findByArtistStageName(stageName)
+                : eventRepository.findByArtistStageNameAndStatus(stageName, status))
                 .stream()
                 .map(mapper::toSummary)
                 .toList();

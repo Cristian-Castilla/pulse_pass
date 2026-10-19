@@ -16,7 +16,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -53,7 +53,7 @@ public class Event {
     private EventStatus status;
 
     @Column(name = "event_date", nullable = false)
-    private LocalDate eventDate;
+    private LocalDateTime eventDate;
 
     @Column(name = "minimum_age")
     private Integer minimumAge;
@@ -80,7 +80,7 @@ public class Event {
     }
 
     public Event(String eventCode, String name, String description, EventCategory category,
-                 EventStatus status, LocalDate eventDate, Integer minimumAge, String streamingUrl,
+                 EventStatus status, LocalDateTime eventDate, Integer minimumAge, String streamingUrl,
                  Venue venue) {
         this.eventCode = eventCode;
         this.name = name;
@@ -117,7 +117,7 @@ public class Event {
         return status;
     }
 
-    public LocalDate getEventDate() {
+    public LocalDateTime getEventDate() {
         return eventDate;
     }
 

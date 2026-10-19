@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * usuario tenga como máximo un perfil"
  */
 @Transactional
-class UserProfileIT extends PostgresContainerSupport {
+class UserProfileTest extends PostgresContainerSupport {
 
     @Autowired private UserRepository userRepository;
     @Autowired private UserProfileRepository userProfileRepository;

@@ -34,6 +34,14 @@ class UserServiceImplTest {
     @Mock
     private UserMapper userMapper;
 
+    /**
+     * La Fase 4 añadió {@link com.pulsepass.pass.service.AuthorizationService} a
+     * {@code UserServiceImpl} para la propiedad de las búsquedas (PRD §11 USR-02 y USR-03). El mock
+     * no tiene comportamiento y no interfiere con lo que estos tests verifican.
+     */
+    @Mock
+    private com.pulsepass.pass.service.AuthorizationService authorizationService;
+
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -42,7 +50,7 @@ class UserServiceImplTest {
         // ARRANGE
         RegisterUserRequest request = new RegisterUserRequest(
                 "andrea", "andrea@example.com", "Andrea", "García",
-                "3001234567", "Bogotá", LocalDate.of(1995, 5, 15));
+                "3001234567", "Bogotá", LocalDate.of(1995, 5, 15), "UnaFraseSeguraLarga2026!");
 
         User user = new User("andrea", "andrea@example.com", true);
         UserProfile profile = new UserProfile(
@@ -72,7 +80,7 @@ class UserServiceImplTest {
         // ARRANGE
         RegisterUserRequest request = new RegisterUserRequest(
                 "andrea", "andrea@example.com", "Andrea", "García",
-                "3001234567", "Bogotá", LocalDate.of(1995, 5, 15));
+                "3001234567", "Bogotá", LocalDate.of(1995, 5, 15), "UnaFraseSeguraLarga2026!");
 
         when(userRepository.findByUsername("andrea")).thenReturn(Optional.of(new User("andrea", "andrea@example.com", true)));
 
@@ -90,7 +98,7 @@ class UserServiceImplTest {
         // ARRANGE
         RegisterUserRequest request = new RegisterUserRequest(
                 "andrea", "andrea@example.com", "Andrea", "García",
-                "3001234567", "Bogotá", LocalDate.of(1995, 5, 15));
+                "3001234567", "Bogotá", LocalDate.of(1995, 5, 15), "UnaFraseSeguraLarga2026!");
 
         when(userRepository.findByUsername("andrea")).thenReturn(Optional.empty());
         when(userRepository.findByEmailIgnoreCase("andrea@example.com"))
@@ -111,7 +119,7 @@ class UserServiceImplTest {
         // ARRANGE
         RegisterUserRequest request = new RegisterUserRequest(
                 "andrea", "andrea@example.com", "Andrea", "García",
-                "3001234567", "Bogotá", LocalDate.now().plusDays(1));
+                "3001234567", "Bogotá", LocalDate.now().plusDays(1), "UnaFraseSeguraLarga2026!");
 
         when(userRepository.findByUsername("andrea")).thenReturn(Optional.empty());
         when(userRepository.findByEmailIgnoreCase("andrea@example.com")).thenReturn(Optional.empty());

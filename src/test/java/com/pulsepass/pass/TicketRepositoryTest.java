@@ -21,7 +21,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -54,7 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * - countPaidTicketsByEventCode
  */
 @Transactional
-class TicketRepositoryIT extends PostgresContainerSupport {
+class TicketRepositoryTest extends PostgresContainerSupport {
 
     @Autowired private TicketRepository ticketRepository;
     @Autowired private UserRepository userRepository;
@@ -76,7 +75,7 @@ class TicketRepositoryIT extends PostgresContainerSupport {
 
         event = new Event("CMF-2026", "Caribbean Music Fest 2026",
                 "Festival de música caribeña", EventCategory.MUSIC, EventStatus.PUBLISHED,
-                LocalDate.now().plusMonths(3), null, null, venue);
+                LocalDateTime.now().plusMonths(3), null, null, venue);
         event.addArtist(solarBeat);
         event = eventRepository.saveAndFlush(event);
 
@@ -143,7 +142,7 @@ class TicketRepositoryIT extends PostgresContainerSupport {
         ticketRepository.deleteAll();
         ticketRepository.flush();
 
-        LocalDate today = LocalDate.now();
+        LocalDateTime today = LocalDateTime.now();
         Venue futureVenue = venueRepository.saveAndFlush(new Venue("VEN-FUT", "Future Venue",
                 "Medellín", "Dir", 500L, true));
         Event pastEvent = eventRepository.saveAndFlush(new Event("EVT-PAST", "Evento pasado",
@@ -159,7 +158,7 @@ class TicketRepositoryIT extends PostgresContainerSupport {
         ticketRepository.saveAndFlush(new Ticket("TCK-FUT", TicketType.GENERAL,
                 new BigDecimal("50000"), TicketStatus.PAID, LocalDateTime.now(), testUser, futureEvent));
 
-        List<Ticket> futureTickets = ticketRepository.findTicketsForFutureEvents(today);
+        List<Ticket> futureTickets = ticketRepository.findTicketsForFutureEvents(LocalDateTime.now());
         assertThat(futureTickets).hasSize(1);
     }
 
