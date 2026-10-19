@@ -41,6 +41,16 @@ class EventServiceImplTest {
     @Mock
     private EventMapper eventMapper;
 
+    /**
+     * La Fase 4 añadió {@link com.pulsepass.pass.service.AuthorizationService} a
+     * {@code EventServiceImpl} para el filtrado de borradores (PRD §11 EVT-02 y EVT-06). Sin rol
+     * el mock devuelve {@code false}, que es el comportamiento por defecto de un mock de Mockito
+     * para {@code boolean}, así que estos tests siguen verificando las reglas de negocio de la
+     * Fase 2. La visibilidad de borradores se prueba en {@code DraftVisibilityTest}.
+     */
+    @Mock
+    private com.pulsepass.pass.service.AuthorizationService authorizationService;
+
     @InjectMocks
     private EventServiceImpl eventService;
 

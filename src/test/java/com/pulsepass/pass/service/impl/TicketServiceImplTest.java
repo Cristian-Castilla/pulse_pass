@@ -3,6 +3,7 @@ package com.pulsepass.pass.service.impl;
 import com.pulsepass.pass.domain.Event;
 import com.pulsepass.pass.domain.EventCategory;
 import com.pulsepass.pass.domain.EventStatus;
+import com.pulsepass.pass.domain.Role;
 import com.pulsepass.pass.domain.Ticket;
 import com.pulsepass.pass.domain.TicketStatus;
 import com.pulsepass.pass.domain.TicketType;
@@ -17,6 +18,7 @@ import com.pulsepass.pass.mapper.TicketMapper;
 import com.pulsepass.pass.repository.EventRepository;
 import com.pulsepass.pass.repository.TicketRepository;
 import com.pulsepass.pass.repository.UserRepository;
+import com.pulsepass.pass.service.AuthorizationService;
 import com.pulsepass.pass.service.PriceCalculator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,6 +52,16 @@ class TicketServiceImplTest {
 
     @Mock
     private PriceCalculator priceCalculator;
+
+    /**
+     * La Fase 4 añadió {@link AuthorizationService} a {@code TicketServiceImpl}: la compra exige que
+     * el {@code userEmail} pertenezca al principal, y la consulta/cancelación contrastan al
+     * propietario. Estos tests unitarios de la Fase 2 verifican las reglas de negocio, así que el
+     * mock se deja sin comportamiento: las llamadas no hacen nada y no interfieren con lo que se
+     * está probando. La autorización se verifica en {@code OwnershipAntiIdorTest}.
+     */
+    @Mock
+    private AuthorizationService authorizationService;
 
     @InjectMocks
     private TicketServiceImpl ticketService;
@@ -340,6 +352,9 @@ class TicketServiceImplTest {
         when(ticketRepository.save(any(Ticket.class))).thenReturn(ticket);
         when(ticketMapper.toResponse(ticket)).thenReturn(expectedResponse);
 
+        // La Fase 4 exige STAFF/ADMIN para marcar un ticket como usado (PRD §11 TKT-06)
+        when(authorizationService.hasRole(Role.STAFF)).thenReturn(true);
+
         // ACT
         TicketResponse result = ticketService.markAsUsed("TCK-001");
 
@@ -362,6 +377,10 @@ class TicketServiceImplTest {
                 LocalDateTime.now(), user, event);
 
         when(ticketRepository.findByTicketCode("TCK-001")).thenReturn(Optional.of(ticket));
+
+        // La Fase 4 exige STAFF/ADMIN para marcar un ticket como usado (PRD §11 TKT-06); sin rol la
+        // autorización corta antes de evaluar la regla de negocio.
+        when(authorizationService.hasRole(Role.STAFF)).thenReturn(true);
 
         // ACT & ASSERT
         assertThrows(BusinessRuleException.class,

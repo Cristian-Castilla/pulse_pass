@@ -25,8 +25,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * que manda (PRD §20: "El spec es la fuente de verdad").
  *
  * <p>Las rutas de propiedad (USR-02, USR-03, TKT-01, TKT-02, TKT-03, TKT-05) caen en
- * {@code anyRequest().authenticated()} como piso y su verificación de propiedad se resuelve en la
- * Etapa 7, en la capa de servicio/autorización.
+ * {@code anyRequest().authenticated()} como piso y su verificación de propiedad se resuelve en
+ * {@code AuthorizationService}, no en el filtro.
  */
 @Configuration
 @EnableWebSecurity
@@ -95,13 +95,13 @@ public class SecurityConfig {
 
                 // PRD §11 EVT-02: "Público solo si publicado; para otros estados STAFF/ADMIN,
                 // evitando revelar borradores". La ruta es alcanzable por anónimo y el filtrado de
-                // borradores se resuelve en la Etapa 7 (decisión D3), en la capa de servicio.
+                // borradores se resuelve en EventService (decisión D3), en la capa de servicio.
                 // El literal /api/events/published ya se declaró arriba; /api/events/by-artist
                 // también. Este patrón con variable cubre el resto de los GET de evento.
                 .requestMatchers(HttpMethod.GET, "/api/events/{eventCode}").permitAll()
 
                 // PRD §11 EVT-06: "Público únicamente para eventos publicados; otros estados
-                // requieren STAFF/ADMIN". El filtrado de borradores es de la Etapa 7 (D3).
+                // requieren STAFF/ADMIN". El filtrado de borradores se resuelve en EventService (D3).
                 .requestMatchers(HttpMethod.GET, "/api/events/by-artist").permitAll()
 
                 // ------------------------------------------------------------------
@@ -123,7 +123,7 @@ public class SecurityConfig {
                 // Piso mínimo (PRD §14.3 adv. 1: "no es la matriz completa")
                 // ------------------------------------------------------------------
                 // Cualquier otra ruta exige identidad válida. La distinción fina por propiedad
-                // (quién es dueño del ticket o del usuario consultado) es de la Etapa 7.
+                // (quién es dueño del ticket o del usuario consultado) la decide AuthorizationService.
                 //
                 // El orden importa aquí también: los literales de tickets deben ir ANTES del patrón
                 // con variable para no tragarse /by-user. Como caen en anyRequest(), se cubren por

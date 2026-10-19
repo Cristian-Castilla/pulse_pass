@@ -34,6 +34,14 @@ class UserServiceImplTest {
     @Mock
     private UserMapper userMapper;
 
+    /**
+     * La Fase 4 añadió {@link com.pulsepass.pass.service.AuthorizationService} a
+     * {@code UserServiceImpl} para la propiedad de las búsquedas (PRD §11 USR-02 y USR-03). El mock
+     * no tiene comportamiento y no interfiere con lo que estos tests verifican.
+     */
+    @Mock
+    private com.pulsepass.pass.service.AuthorizationService authorizationService;
+
     @InjectMocks
     private UserServiceImpl userService;
 

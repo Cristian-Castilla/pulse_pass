@@ -2,18 +2,21 @@ package com.pulsepass.pass.service.impl;
 
 import com.pulsepass.pass.domain.Event;
 import com.pulsepass.pass.domain.EventStatus;
+import com.pulsepass.pass.domain.Role;
 import com.pulsepass.pass.domain.Ticket;
 import com.pulsepass.pass.domain.TicketStatus;
 import com.pulsepass.pass.domain.User;
 import com.pulsepass.pass.domain.UserProfile;
 import com.pulsepass.pass.dto.request.PurchaseTicketRequest;
 import com.pulsepass.pass.dto.response.TicketResponse;
+import com.pulsepass.pass.exception.AccessDeniedException;
 import com.pulsepass.pass.exception.BusinessRuleException;
 import com.pulsepass.pass.exception.ResourceNotFoundException;
 import com.pulsepass.pass.mapper.TicketMapper;
 import com.pulsepass.pass.repository.EventRepository;
 import com.pulsepass.pass.repository.TicketRepository;
 import com.pulsepass.pass.repository.UserRepository;
+import com.pulsepass.pass.service.AuthorizationService;
 import com.pulsepass.pass.service.PriceCalculator;
 import com.pulsepass.pass.service.TicketService;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,17 +35,20 @@ public class TicketServiceImpl implements TicketService {
     private final EventRepository eventRepository;
     private final TicketMapper mapper;
     private final PriceCalculator priceCalculator;
+    private final AuthorizationService authorizationService;
 
     public TicketServiceImpl(TicketRepository ticketRepository,
                              UserRepository userRepository,
                              EventRepository eventRepository,
                              TicketMapper mapper,
-                             PriceCalculator priceCalculator) {
+                             PriceCalculator priceCalculator,
+                             AuthorizationService authorizationService) {
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
         this.mapper = mapper;
         this.priceCalculator = priceCalculator;
+        this.authorizationService = authorizationService;
     }
 
     @Transactional
@@ -51,6 +57,15 @@ public class TicketServiceImpl implements TicketService {
         // BR-TICKET-001: Usuario existente
         User user = userRepository.findByEmailIgnoreCase(request.userEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + request.userEmail()));
+
+        // PRD §11.1: "POST /api/tickets debe comprobar que el userEmail del DTO representa al
+        // principal (para USER). Nunca confiar en el email del request como comprobación de
+        // autorización". La comparación es por id persistente, no por string: PRD §9.1 vincula la
+        // identidad de login al ID, no al correo.
+        //
+        // Se evalúa ANTES de las reglas de negocio: si la petición no es del propio usuario, no se
+        // ejecuta ninguna validación sobre el evento y no se filtra información de su existencia.
+        authorizationService.requireSelf(user.getId());
 
         // BR-TICKET-002: Usuario activo
         if (!user.getActive()) {
@@ -123,13 +138,31 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public TicketResponse findByCode(String ticketCode) {
-        return ticketRepository.findByTicketCode(ticketCode)
-                .map(mapper::toResponse)
+        Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found: " + ticketCode));
+
+        // PRD §11.1: "GET /api/tickets/{ticketCode} debe determinar el usuario propietario desde la
+        // base de datos y contrastarlo con principal.userId; jamás basta el ticketCode".
+        // STAFF/ADMIN también pasan (PRD §11 TKT-02: "Propietario, o STAFF/ADMIN en operación
+        // autorizada").
+        authorizationService.requireOwnerOrPrivileged(ticket.getUser().getId());
+
+        return mapper.toResponse(ticket);
     }
 
     @Override
     public List<TicketResponse> findByUserEmail(String email) {
+        // PRD §11 TKT-03: "Propietario, o ADMIN autorizado".
+        //
+        // La identidad se resuelve a partir del email pedido, cargando el usuario real desde la
+        // base, y se compara por ID persistente (PRD §11.1: "las dos búsquedas de usuario deben
+        // comparar el usuario solicitado con la identidad autenticada usando ID persistente, no solo
+        // un string de email"). Un email que no existe no revela nada: 404 de negocio.
+        User requested = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
+
+        authorizationService.requireOwnerOrPrivileged(requested.getId());
+
         return ticketRepository.findByUserEmailIgnoreCaseOrderByPurchaseDateDesc(email)
                 .stream()
                 .map(mapper::toResponse)
@@ -149,6 +182,13 @@ public class TicketServiceImpl implements TicketService {
     public TicketResponse cancel(String ticketCode) {
         Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found: " + ticketCode));
+
+        // PRD §11 TKT-05: "Propietario (USER) o ADMIN expresamente autorizado; sigue vigente la
+        // regla de cancelación del Service".
+        //
+        // La autorización va ANTES de las reglas de negocio: si el ticket no es del principal, no
+        // se ejecuta ninguna validación y no se filtra el estado real del ticket.
+        authorizationService.requireOwnerOrPrivileged(ticket.getUser().getId());
 
         // BR-TICKET-010: Solo PAID puede cancelarse
         if (ticket.getStatus() != TicketStatus.PAID) {
@@ -171,6 +211,17 @@ public class TicketServiceImpl implements TicketService {
     public TicketResponse markAsUsed(String ticketCode) {
         Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found: " + ticketCode));
+
+        // PRD §11 TKT-06: "STAFF/ADMIN; conserva transición válida del Service".
+        //
+        // El rol lo exige la matriz de rutas de SecurityConfig, pero la autorización se repite aquí
+        // porque el PRD §3.2 pide que la propiedad no dependa "solamente del Controller" ni de la
+        // capa web: una invocación directa al servicio debe seguir sin poder marcar un ticket ajeno.
+        // Un USER que llegara hasta aquí (p. ej. por una ruta mal configurada) recibe 403.
+        if (!authorizationService.hasRole(Role.STAFF) && !authorizationService.hasRole(Role.ADMIN)) {
+            throw new AccessDeniedException(
+                    "No tiene permisos para realizar esta operación");
+        }
 
         // BR-TICKET-013: Solo PAID puede marcarse como usado
         if (ticket.getStatus() != TicketStatus.PAID) {
