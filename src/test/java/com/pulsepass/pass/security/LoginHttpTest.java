@@ -48,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @AutoConfigureMockMvc
 @Transactional
-class LoginHttpIT extends PostgresContainerSupport {
+class LoginHttpTest extends PostgresContainerSupport {
 
     private static final String RAW_PASSWORD = "UnaFraseSeguraLarga2026!";
 

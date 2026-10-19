@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * PRD: "Hibernate NO debe crear ni modificar el esquema"
  */
 @SpringBootTest
-class FlywayMigrationIT extends PostgresContainerSupport {
+class FlywayMigrationTest extends PostgresContainerSupport {
 
     @Autowired
     private VenueRepository venueRepository;

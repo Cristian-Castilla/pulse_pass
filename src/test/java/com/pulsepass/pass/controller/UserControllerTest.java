@@ -23,9 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>Migrado de {@code @WebMvcTest} a HTTP real. USR-01 es público y se prueba sin token; USR-02
  * y USR-03 son "Autenticado" y se prueban con el Bearer del propio usuario.
  *
- * <p><b>La capa de propiedad es la Etapa 7.</b> El PRD §11.1 pide contrastar el usuario solicitado
- * con el principal usando el ID persistente; aquí se verifica la capa de autenticación (401 sin
- * token, 200 con token) y el contraste fino queda documentado como pendiente.
+ * <p><b>La capa de propiedad está implementada</b> en AuthorizationService y se verifica en
+ * OwnershipAntiIdorTest. Aquí se prueba la capa de autenticación (401 sin token, 200 con token).
  */
 class UserControllerTest extends ControllerHttpSupport {
 
@@ -149,7 +148,8 @@ class UserControllerTest extends ControllerHttpSupport {
     @Test
     void findByEmail_authenticatedUser_returns200() throws Exception {
         // PRD §11 USR-02: "Propio usuario, o ADMIN". Con la identidad propia la ruta responde.
-        // El contraste fino (que el email solicitado sea el del principal) es Etapa 7.
+        // El contraste de propiedad (que el email sea el del principal) se verifica en
+        // OwnershipAntiIdorTest.
         persistUser("andrea", "andrea@example.com", Role.USER);
 
         mockMvc.perform(get("/api/users/by-email").param("email", "andrea@example.com")

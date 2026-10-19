@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * - findRecommendedEvents
  */
 @Transactional
-class EventRepositoryIT extends PostgresContainerSupport {
+class EventRepositoryTest extends PostgresContainerSupport {
 
     @Autowired private EventRepository eventRepository;
     @Autowired private VenueRepository venueRepository;

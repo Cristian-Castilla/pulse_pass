@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * EVT-01..06 — operaciones de evento, con la matriz de roles del PRD §11.
  *
  *   EVT-01 POST   /api/events                          → ADMIN
- *   EVT-02 GET    /api/events/{eventCode}              → público (filtrado de borradores: Etapa 7)
+ *   EVT-02 GET    /api/events/{eventCode}              → público solo si PUBLISHED
  *   EVT-03 GET    /api/events/published                → público
  *   EVT-04 PATCH  /api/events/{eventCode}/publish      → ADMIN
  *   EVT-05 POST   /api/events/{eventCode}/artists/{id} → ADMIN
@@ -170,13 +170,18 @@ class EventControllerTest extends ControllerHttpSupport {
 
     @Test
     void findByCode_existingEvent_returns200() throws Exception {
-        // PRD §11 EVT-02: "Público solo si publicado". El evento es DRAFT en este test; el filtrado
-        // de borradores es de la Etapa 7, así que hoy la ruta es alcanzable por un anónimo.
-        persistDraftEvent("CMF-2026");
+        // PRD §11 EVT-02: "Público solo si publicado". Un anónimo solo alcanza un evento
+        // PUBLISHED; un DRAFT se reporta como inexistente (ver DraftVisibilityTest).
+        Venue venue = persistReferenceVenue();
+        eventRepository.saveAndFlush(new Event(
+                "CMF-2026", "Caribbean Music Fest 2026", "Test description",
+                EventCategory.MUSIC, EventStatus.PUBLISHED,
+                LocalDateTime.now().plusDays(30), 0, null, venue));
 
         mockMvc.perform(get("/api/events/{eventCode}", "CMF-2026"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.eventCode").value("CMF-2026"))
+                .andExpect(jsonPath("$.status").value("PUBLISHED"))
                 .andExpect(jsonPath("$.venueName").value("Marina Convention Center"));
     }
 

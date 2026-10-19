@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * {@code SecurityFilterChain} declare {@code /api/auth/login} como público.
  */
 @Transactional
-class LoginServiceIT extends PostgresContainerSupport {
+class LoginServiceTest extends PostgresContainerSupport {
 
     private static final String RAW_PASSWORD = "UnaFraseSeguraLarga2026!";
 

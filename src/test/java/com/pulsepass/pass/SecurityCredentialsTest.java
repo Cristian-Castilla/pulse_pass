@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * PRD §17.3: integración selectiva con PostgreSQL/Testcontainers.
  */
 @Transactional
-class SecurityCredentialsIT extends PostgresContainerSupport {
+class SecurityCredentialsTest extends PostgresContainerSupport {
 
     @Autowired private UserRepository userRepository;
     @Autowired private UserCredentialRepository userCredentialRepository;

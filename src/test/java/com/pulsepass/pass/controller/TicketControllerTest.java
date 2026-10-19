@@ -38,9 +38,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * el evento PUBLISHED y el venue persistidos, de modo que se verifican también las reglas de negocio
  * (BR-TICKET-004..009) que antes se mockeaban.
  *
- * <p><b>La capa de propiedad es la Etapa 7.</b> PRD §11.1: "GET /api/tickets/{ticketCode} debe
- * determinar el usuario propietario desde la base de datos y contrastarlo con principal.userId".
- * Aquí se prueba la capa de autenticación y rol; el contraste de propiedad queda pendiente.
+ * <p><b>La capa de propiedad está implementada</b> en AuthorizationService y se verifica en
+ * OwnershipAntiIdorTest. Aquí se prueba la capa de autenticación y rol por HTTP.
  */
 class TicketControllerTest extends ControllerHttpSupport {
 
@@ -181,7 +180,7 @@ class TicketControllerTest extends ControllerHttpSupport {
     }
 
     // ------------------------------------------------------------------
-    // TKT-02 / TKT-03 / TKT-05 — autenticado (propiedad: Etapa 7)
+    // TKT-02 / TKT-03 / TKT-05 — autenticado (la propiedad se verifica en OwnershipAntiIdorTest)
     // ------------------------------------------------------------------
 
     @Test

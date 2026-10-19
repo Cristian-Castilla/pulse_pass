@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * privilegios después de una revocación de rol".
  */
 @Transactional
-class CustomUserDetailsServiceIT extends PostgresContainerSupport {
+class CustomUserDetailsServiceTest extends PostgresContainerSupport {
 
     @Autowired private CustomUserDetailsService userDetailsService;
     @Autowired private UserRepository userRepository;

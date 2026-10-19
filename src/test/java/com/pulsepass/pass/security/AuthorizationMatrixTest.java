@@ -39,16 +39,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * PRD §17.2, T-SEC-002/003: anónimo 401, USER sin rol 403.
  * PRD §14.3 adv. 4: "El orden de matchers importa: rutas específicas antes de patrones generales".
  *
- * <p>Este test cubre la capa de <b>rol</b>. La capa de <b>propiedad</b> (anti-IDOR) es la Etapa 7:
- * aquí solo se verifica que la ruta exige la identidad correcta, no que un usuario no pueda operar
- * sobre recursos ajenos.
+ * <p>Este test cubre la capa de <b>rol</b>. La capa de <b>propiedad</b> (anti-IDOR) se verifica en
+ * OwnershipAntiIdorTest; aquí solo se comprueba que la ruta exige la identidad correcta.
  *
  * <p>El body de las peticiones que requieren cuerpo se construye con un JSON mínimo y válido; los
  * tests de negocio de cada operación siguen en sus propias clases (Fase 3).
  */
 @AutoConfigureMockMvc
 @Transactional
-class AuthorizationMatrixIT extends PostgresContainerSupport {
+class AuthorizationMatrixTest extends PostgresContainerSupport {
 
     private static final String RAW_PASSWORD = "UnaFraseSeguraLarga2026!";
 
@@ -212,13 +211,13 @@ class AuthorizationMatrixIT extends PostgresContainerSupport {
     }
 
     // ------------------------------------------------------------------
-    // USR-02 / USR-03 — autenticado (la propiedad es Etapa 7)
+    // USR-02 / USR-03 — autenticado (la propiedad se verifica en OwnershipAntiIdorTest)
     // ------------------------------------------------------------------
 
     @Test
     void usr02_findByEmail_requiresAuthentication() throws Exception {
         // Anónimo: 401. Autenticado: pasa la capa de seguridad (el 404 es de negocio, el usuario
-        // no existe en este test). La verificación de propiedad es de la Etapa 7.
+        // no existe en este test). La verificación de propiedad se hace en OwnershipAntiIdorTest.
         assertThat(statusOf(get("/api/users/by-email").param("email", "andrea@example.com")))
                 .isEqualTo(401);
         assertThat(statusOf(get("/api/users/by-email").param("email", "andrea@example.com")
@@ -253,7 +252,7 @@ class AuthorizationMatrixIT extends PostgresContainerSupport {
     }
 
     // ------------------------------------------------------------------
-    // TKT-02 / TKT-03 / TKT-05 — autenticado (la propiedad es Etapa 7)
+    // TKT-02 / TKT-03 / TKT-05 — autenticado (la propiedad se verifica en OwnershipAntiIdorTest)
     // ------------------------------------------------------------------
 
     @Test
@@ -339,14 +338,14 @@ class AuthorizationMatrixIT extends PostgresContainerSupport {
     }
 
     // ------------------------------------------------------------------
-    // EVT-02 / EVT-06 — públicos con filtrado de borradores (Etapa 7)
+    // EVT-02 / EVT-06 — públicos con filtrado de borradores (ver DraftVisibilityTest)
     // ------------------------------------------------------------------
 
     @Test
     void evt02_eventByCode_isReachableByAnonymous() throws Exception {
         // PRD §11 EVT-02: "Público solo si publicado". Un anónimo NO debe recibir 401: la ruta es
         // alcanzable. El 404 es de negocio (el evento no existe en este test). El filtrado de
-        // borradores es de la Etapa 7 (decisión D3).
+        // borradores se verifica en DraftVisibilityTest (decisión D3).
         assertThat(statusOf(get("/api/events/CMF-2026"))).isEqualTo(404);
     }
 

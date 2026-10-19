@@ -53,7 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * - countPaidTicketsByEventCode
  */
 @Transactional
-class TicketRepositoryIT extends PostgresContainerSupport {
+class TicketRepositoryTest extends PostgresContainerSupport {
 
     @Autowired private TicketRepository ticketRepository;
     @Autowired private UserRepository userRepository;
