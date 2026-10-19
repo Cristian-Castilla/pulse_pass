@@ -281,6 +281,7 @@ ni quién es su dueño.
 | `AuthorizationMatrixTest` | Matriz de rol de las 20 operaciones |
 | `OwnershipAntiIdorTest` | Anti-IDOR sobre compra, consulta, listado y cancelación |
 | `DraftVisibilityTest` | Filtrado de eventos no publicados (EVT-02, EVT-06) |
+| `FlywayMigrationOnExistingSchemaTest` | V4 sobre esquema V1–V3 ya migrado (ALTER, tablas, constraints) |
 
 Los tests **no deshabilitan los filtros** (`@AutoConfigureMockMvc(addFilters = false)`
 invalidaría el propósito de probar seguridad). Autentican con un Bearer real emitido por
