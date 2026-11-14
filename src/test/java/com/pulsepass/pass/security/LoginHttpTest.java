@@ -60,6 +60,10 @@ class LoginHttpTest extends PostgresContainerSupport {
     @Autowired private UserRoleRepository userRoleRepository;
     @Autowired private VenueRepository venueRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private jakarta.persistence.EntityManager entityManager;
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate sql;
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    private com.pulsepass.pass.service.TicketService ticketService;
 
     @BeforeEach
     void cleanDatabase() {
@@ -255,6 +259,19 @@ class LoginHttpTest extends PostgresContainerSupport {
     }
 
     @Test
+    void registrationRejectsOver72Utf8BytesAsBadRequestWithoutRows() throws Exception {
+        long before = userRepository.count();
+        mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content("""
+                {"username":"bytebound","email":"bytebound@example.com","firstName":"First",
+                "lastName":"Last","birthDate":"1995-01-01","password":"%s"}
+                """.formatted("é".repeat(37))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+        assertThat(userRepository.count()).isEqualTo(before);
+        assertThat(userRepository.findByUsername("bytebound")).isEmpty();
+    }
+
+    @Test
     void user_cannotCreateEvents() throws Exception {
         // T-SEC-003: "USER POST /api/events → 403, sin invocar Service"
         persistUser("andrea", "andrea@example.com", true, Role.USER);
@@ -331,10 +348,16 @@ class LoginHttpTest extends PostgresContainerSupport {
         String[] parts = token.split("\\.");
         String tampered = parts[0] + "." + parts[1] + ".invalidsignature";
 
-        mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + tampered))
+        org.mockito.Mockito.clearInvocations(ticketService);
+        mockMvc.perform(post("/api/tickets").header("Authorization", "Bearer " + tampered)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"userEmail":"andrea@example.com","eventCode":"CMF-2026","type":"GENERAL"}
+                                """))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.message").value("Invalid credentials"));
+        org.mockito.Mockito.verifyNoInteractions(ticketService);
     }
 
     @Test
@@ -359,16 +382,12 @@ class LoginHttpTest extends PostgresContainerSupport {
 
     @Test
     void deactivatedUserWithValidToken_isDeniedOnNextRequest() throws Exception {
-        // T-SEC-016: "Un token válido pertenece a usuario inactivo → 401"
-        // PRD §8 SEC-011: "Un usuario desactivado pierde acceso en el siguiente request"
-        //
-        // El escenario real del DoD §23.10 es "un token emitido antes de desactivar al usuario".
-        // No se puede reproducir aquí sin mutar la entidad (User no expone setActive por diseño) ni
-        // persistir fuera de la transacción del test (que se revierte). Se verifica entonces la
-        // garantía equivalente: un token válido no basta si el estado vigente en la base es inactivo,
-        // porque el filtro revalida el estado en cada request contra la base.
-        User miguel = persistUser("miguel", "miguel@example.com", false, Role.USER);
-        String token = tokenSignedAs(miguel.getId());
+        User miguel = persistUser("miguel", "miguel@example.com", true, Role.USER);
+        String token = authService.login("miguel", RAW_PASSWORD).accessToken();
+        mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token)).andExpect(status().isOk());
+        entityManager.flush();
+        sql.update("UPDATE users SET active=false WHERE id=?", miguel.getId());
+        entityManager.clear();
 
         mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized())

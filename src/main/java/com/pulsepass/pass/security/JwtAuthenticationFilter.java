@@ -16,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Enumeration;
 /**
  * Lee el encabezado {@code Authorization: Bearer ...}, valida el JWT y construye el contexto de
  * seguridad.
@@ -65,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = extractBearerToken(request.getHeader(HttpHeaders.AUTHORIZATION));
+        String token = extractBearerToken(request);
 
         if (token != null && authenticate(request, token)) {
             // autenticado: la cadena sigue y la autorización de ruta ocurre después
@@ -78,24 +79,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Extrae el token del encabezado. Devuelve {@code null} si no hay encabezado o si el esquema no
-     * es Bearer.
-     *
-     * <p>PRD §17.1 (JwtAuthenticationFilterTest): "doble header sospechoso" no debe colar. Un
-     * encabezado con varias cabeceras Bearer se trata como inválido: se toma la primera y se
-     * valida; si no pasa, el contexto queda limpio y el EntryPoint responde 401.
-     */
-    private String extractBearerToken(String authorizationHeader) {
-        if (authorizationHeader == null || authorizationHeader.isBlank()) {
+    /** Reject duplicate fields, combined values and non-Bearer schemes before token validation. */
+    private String extractBearerToken(HttpServletRequest request) {
+        Enumeration<String> headers = request.getHeaders(HttpHeaders.AUTHORIZATION);
+        if (headers == null || !headers.hasMoreElements()) {
             return null;
         }
-        if (!authorizationHeader.startsWith(BEARER_PREFIX)) {
-            // Esquema distinto (Basic, etc.): no es un Bearer, se ignora.
+        String header = headers.nextElement();
+        if (headers.hasMoreElements() || header == null
+                || !header.matches("(?i:Bearer) [A-Za-z0-9._~+/-]+=*")) {
             return null;
         }
-        String token = authorizationHeader.substring(BEARER_PREFIX.length()).trim();
-        return token.isBlank() ? null : token;
+        return header.substring(BEARER_PREFIX.length());
     }
 
     /**
@@ -105,9 +100,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * contrastar {@code principal.userId} con el propietario real, y el id es lo que lleva el claim
      * {@code sub}.
      *
-     * <p>Los roles se leen desde el token, que los emitió el login, pero se revalidan contra la
-     * base en cada request (PRD §12.3: "revalidar roles/estado actuales"). El filtro delega esa
-     * revalidación en el {@code JwtService} para no acoplarse a la persistencia.
+     * <p>Los roles y el estado se leen desde persistencia en cada request, nunca desde el JWT.
      *
      * @return {@code true} si el token es válido y se construyó el contexto
      */
@@ -117,10 +110,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // Los roles se leen en persistencia en cada request (PRD §12.3), no del token: así un
             // rol revocado entra en vigencia sin esperar al vencimiento del JWT.
-            List<GrantedAuthority> authorities =
-                    userDetailsService.loadAuthorities(userId);
-
             SecurityPrincipal principal = userDetailsService.loadPrincipalById(userId);
+            List<GrantedAuthority> authorities =
+                    userDetailsService.loadAuthorities(principal.username());
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(principal, null, authorities);

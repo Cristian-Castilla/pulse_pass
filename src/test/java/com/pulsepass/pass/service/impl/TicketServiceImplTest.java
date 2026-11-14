@@ -196,7 +196,7 @@ class TicketServiceImplTest {
         User user = new User("laura", "laura@example.com", true);
         UserProfile profile = new UserProfile(
                 "Laura", "Pérez", "3001234567", "Bogotá",
-                LocalDate.of(2010, 1, 1), user);
+                LocalDate.now().plusMonths(3).minusYears(18).plusDays(1), user);
         user.assignProfile(profile);
 
         Venue venue = new Venue("VEN-SMR-01", "Marina Convention Center",

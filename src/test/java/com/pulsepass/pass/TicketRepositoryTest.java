@@ -60,6 +60,7 @@ class TicketRepositoryTest extends PostgresContainerSupport {
     @Autowired private EventRepository eventRepository;
     @Autowired private VenueRepository venueRepository;
     @Autowired private ArtistRepository artistRepository;
+    @Autowired private jakarta.persistence.EntityManager entityManager;
 
     private Venue venue;
     private Event event;
@@ -83,7 +84,7 @@ class TicketRepositoryTest extends PostgresContainerSupport {
         carlos = userRepository.saveAndFlush(new User("carlos", "carlos@example.com", true));
 
         ticketRepository.saveAndFlush(new Ticket("TCK-ANDREA-01", TicketType.VIP,
-                new BigDecimal("250000"), TicketStatus.PAID, LocalDateTime.now(), andrea, event));
+                new BigDecimal("250000"), TicketStatus.PAID, LocalDateTime.of(2026, 1, 2, 3, 4, 5), andrea, event));
         ticketRepository.saveAndFlush(new Ticket("TCK-CARLOS-01", TicketType.GENERAL,
                 new BigDecimal("120000"), TicketStatus.PAID, LocalDateTime.now(), carlos, event));
         ticketRepository.saveAndFlush(new Ticket("TCK-LAURA-01", TicketType.GENERAL,
@@ -93,13 +94,21 @@ class TicketRepositoryTest extends PostgresContainerSupport {
 
     @Test
     void shouldLinkTicketToUserAndEvent() {
-        // Ticket N:1 User, Ticket N:1 Event
-        // Verificación mediante equals (ticketCode es el identificador de negocio)
+        ticketRepository.flush();
+        entityManager.clear();
         Ticket ticket = ticketRepository.findByTicketCode("TCK-ANDREA-01").orElseThrow();
-        Ticket expectedTicket = new Ticket("TCK-ANDREA-01", TicketType.VIP,
-                new BigDecimal("250000"), TicketStatus.PAID,
-                LocalDateTime.now(), andrea, event);
-        assertThat(ticket.equals(expectedTicket)).isTrue();
+        assertThat(ticket.getUser().getId()).isEqualTo(andrea.getId());
+        assertThat(ticket.getUser().getEmail()).isEqualTo("andrea@example.com");
+        assertThat(ticket.getEvent().getId()).isEqualTo(event.getId());
+        assertThat(ticket.getEvent().getEventCode()).isEqualTo("CMF-2026");
+        assertThat(ticket.getEvent().getVenue().getId()).isEqualTo(venue.getId());
+        assertThat(ticket.getType()).isEqualTo(TicketType.VIP);
+        assertThat(ticket.getStatus()).isEqualTo(TicketStatus.PAID);
+        assertThat(ticket.getPrice()).isEqualByComparingTo("250000.00");
+        assertThat(ticket.getPurchaseDate()).isEqualTo(LocalDateTime.of(2026, 1, 2, 3, 4, 5));
+        assertThat(ticket.getUser().getTickets()).extracting(Ticket::getTicketCode).containsExactly("TCK-ANDREA-01");
+        assertThat(ticket.getEvent().getTickets()).extracting(Ticket::getTicketCode)
+                .containsExactlyInAnyOrder("TCK-ANDREA-01", "TCK-CARLOS-01", "TCK-LAURA-01");
     }
 
     @Test
@@ -192,5 +201,40 @@ class TicketRepositoryTest extends PostgresContainerSupport {
     @Test
     void shouldReturnTrueWhenTicketCodeExists() {
         assertThat(ticketRepository.existsByTicketCode("TCK-ANDREA-01")).isTrue();
+    }
+
+    @Test
+    void paidQueriesExcludeEveryOtherStatusAndOtherEvents() {
+        for (TicketStatus status : List.of(TicketStatus.USED, TicketStatus.CANCELLED, TicketStatus.RESERVED)) {
+            ticketRepository.save(new Ticket("DIST-" + status, TicketType.GENERAL, BigDecimal.ZERO,
+                    status, LocalDateTime.of(2030, 1, 1, 12, 0), andrea, event));
+        }
+        Event other = eventRepository.saveAndFlush(new Event("OTHER-EVENT", "Other", "Desc", EventCategory.MUSIC,
+                EventStatus.PUBLISHED, LocalDateTime.of(2030, 1, 2, 19, 0), null, null, venue));
+        ticketRepository.saveAndFlush(new Ticket("DIST-OTHER", TicketType.GENERAL, BigDecimal.ZERO,
+                TicketStatus.PAID, LocalDateTime.of(2030, 1, 1, 12, 0), andrea, other));
+        entityManager.clear();
+        assertThat(ticketRepository.countPaidTicketsByEventCode("CMF-2026")).isEqualTo(2L);
+        assertThat(ticketRepository.findPaidTicketsByEventCode("CMF-2026")).extracting(Ticket::getTicketCode)
+                .containsExactlyInAnyOrder("TCK-ANDREA-01", "TCK-CARLOS-01");
+        assertThat(ticketRepository.findByUserEmailAndStatus("andrea@example.com", TicketStatus.PAID))
+                .extracting(Ticket::getTicketCode).containsExactlyInAnyOrder("TCK-ANDREA-01", "DIST-OTHER");
+        assertThat(ticketRepository.findByUserEmail("andrea@example.com")).extracting(Ticket::getTicketCode)
+                .containsExactlyInAnyOrder("TCK-ANDREA-01", "DIST-OTHER", "DIST-USED", "DIST-CANCELLED", "DIST-RESERVED");
+    }
+
+    @Test
+    void futureTicketQueryExcludesBoundaryAndPastAndSortsSeveralDates() {
+        LocalDateTime cutoff = LocalDateTime.of(2099, 1, 1, 12, 0);
+        for (int days : new int[] {3, 1, 0, -1}) {
+            Event dated = eventRepository.saveAndFlush(new Event("DATED-" + days, "Dated", "Desc", EventCategory.MUSIC,
+                    EventStatus.PUBLISHED, cutoff.plusDays(days), null, null, venue));
+            ticketRepository.save(new Ticket("DATED-T-" + days, TicketType.GENERAL, BigDecimal.ZERO,
+                    TicketStatus.PAID, cutoff.minusDays(5), andrea, dated));
+        }
+        ticketRepository.flush();
+        entityManager.clear();
+        assertThat(ticketRepository.findTicketsForFutureEvents(cutoff)).extracting(Ticket::getTicketCode)
+                .containsExactly("DATED-T-1", "DATED-T-3");
     }
 }

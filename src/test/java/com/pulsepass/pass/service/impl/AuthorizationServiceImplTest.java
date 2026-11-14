@@ -36,14 +36,9 @@ import static org.mockito.Mockito.when;
  * <p>Sin Spring ni PostgreSQL: el contexto de seguridad se arma a mano con
  * {@code SecurityContextHolder}, que es exactamente lo que el filtro pobla en producción.
  */
-@ExtendWith(MockitoExtension.class)
 class AuthorizationServiceImplTest {
 
-    @Mock private UserRepository userRepository;
-    @Mock private UserRoleRepository userRoleRepository;
-
-    @InjectMocks
-    private AuthorizationServiceImpl authorizationService;
+    private final AuthorizationServiceImpl authorizationService = new AuthorizationServiceImpl();
 
     @AfterEach
     void clearContext() {
@@ -181,6 +176,38 @@ class AuthorizationServiceImplTest {
     // ------------------------------------------------------------------
     // hasRole
     // ------------------------------------------------------------------
+
+    @Test
+    void requireSelf_ownerWithoutUserRoleIsDenied() {
+        for (Role[] roles : List.of(new Role[0], new Role[]{Role.STAFF}, new Role[]{Role.ADMIN})) {
+            authenticate(principal(7L, true), roles);
+            assertThrows(AccessDeniedException.class, () -> authorizationService.requireSelf(7L));
+        }
+    }
+
+    @Test
+    void requireSelf_inactiveOwnerIsDenied() {
+        authenticate(principal(7L, false), Role.USER);
+        assertThrows(AccessDeniedException.class, () -> authorizationService.requireSelf(7L));
+    }
+
+    @Test
+    void unauthenticatedTokenCannotSupplyPrincipalOrRoles() {
+        authenticate(principal(7L, true), Role.ADMIN);
+        SecurityContextHolder.getContext().getAuthentication().setAuthenticated(false);
+        assertThrows(AuthenticationException.class, authorizationService::currentPrincipal);
+        assertThat(authorizationService.hasRole(Role.ADMIN)).isFalse();
+    }
+
+    @Test
+    void anonymousPrincipalDoesNotSupplyBusinessIdentity() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new org.springframework.security.authentication.AnonymousAuthenticationToken(
+                        "test", "anonymousUser", List.of(
+                        new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
+        assertThrows(AuthenticationException.class, authorizationService::currentPrincipal);
+        assertThat(authorizationService.hasRole(Role.ADMIN)).isFalse();
+    }
 
     @Test
     void hasRole_returnsTrueForOwnedRole() {

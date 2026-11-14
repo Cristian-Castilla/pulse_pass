@@ -39,11 +39,23 @@ class SecurityCredentialsTest extends PostgresContainerSupport {
     @Autowired private UserCredentialRepository userCredentialRepository;
     @Autowired private UserRoleRepository userRoleRepository;
 
-    @BeforeEach
-    void cleanDatabase() {
-        userRoleRepository.deleteAllInBatch();
-        userCredentialRepository.deleteAllInBatch();
-        userRepository.deleteAllInBatch();
+    @Autowired private jakarta.persistence.EntityManager entityManager;
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @Test
+    void deletingCredentialMustPreserveUserAndProfile() {
+        User user = userRepository.saveAndFlush(new User("credential-delete", "credential-delete@example.test", true));
+        user.assignProfile(new com.pulsepass.pass.domain.UserProfile("Keep", "Profile", "123", "Bogotá",
+                java.time.LocalDate.of(1990, 1, 1), user));
+        userRepository.flush();
+        UserCredential credential = userCredentialRepository.saveAndFlush(new UserCredential(user, "test-only-hash", null));
+        Long id = user.getId();
+        userCredentialRepository.delete(credential);
+        userCredentialRepository.flush();
+        entityManager.clear();
+        assertThat(userCredentialRepository.findById(id)).isEmpty();
+        User reloaded = userRepository.findById(id).orElseThrow();
+        assertThat(reloaded.getProfile().getFirstName()).isEqualTo("Keep");
     }
 
     @Test
@@ -57,6 +69,7 @@ class SecurityCredentialsTest extends PostgresContainerSupport {
 
         assertThat(credential.getId()).isEqualTo(user.getId());
 
+        entityManager.clear();
         UserCredential reloaded = userCredentialRepository.findById(user.getId()).orElseThrow();
         assertThat(reloaded.getPasswordHash()).startsWith("$2a$10$");
         assertThat(reloaded.getUser().getUsername()).isEqualTo("andrea");
@@ -99,12 +112,12 @@ class SecurityCredentialsTest extends PostgresContainerSupport {
 
     @Test
     void shouldPreventDuplicateRoleForUser() {
-        // uk_user_role UNIQUE(user_id, role) — el PRD pide PK(user_id, role)
+        // An assigned composite id makes save merge; SQL verifies the database duplicate constraint.
         User user = userRepository.saveAndFlush(new User("diana", "diana@example.com", true));
         userRoleRepository.saveAndFlush(new UserRole(user, Role.ADMIN));
 
         assertThrows(DataIntegrityViolationException.class,
-                () -> userRoleRepository.saveAndFlush(new UserRole(user, Role.ADMIN)));
+                () -> jdbc.update("INSERT INTO user_roles(user_id,role) VALUES (?,'ADMIN')", user.getId()));
     }
 
     @Test
@@ -112,9 +125,8 @@ class SecurityCredentialsTest extends PostgresContainerSupport {
         // chk_user_role CHECK (role IN ('USER','STAFF','ADMIN'))
         User user = userRepository.saveAndFlush(new User("pablo", "pablo@example.com", true));
 
-        UserRole invalid = new UserRole(user, null);
         assertThrows(DataIntegrityViolationException.class,
-                () -> userRoleRepository.saveAndFlush(invalid));
+                () -> jdbc.update("INSERT INTO user_roles(user_id,role) VALUES (?,'SUPERUSER')", user.getId()));
     }
 
     @Test
@@ -136,5 +148,32 @@ class SecurityCredentialsTest extends PostgresContainerSupport {
         assertThat(userRepository.findById(legacy.getId())).isPresent();
         assertThat(userCredentialRepository.findById(legacy.getId())).isEmpty();
         assertThat(userCredentialRepository.existsByUserUsername("legacy")).isFalse();
+    }
+
+    @Test
+    void compositeIdentitySupportsRepositoryLookupAndIndependentDeletion() {
+        User first = userRepository.saveAndFlush(new User("role-first", "role-first@example.test", true));
+        User second = userRepository.saveAndFlush(new User("role-second", "role-second@example.test", true));
+        userRoleRepository.saveAllAndFlush(List.of(new UserRole(first, Role.USER),
+                new UserRole(first, Role.STAFF), new UserRole(second, Role.USER)));
+        entityManager.clear();
+        var key = new com.pulsepass.pass.domain.UserRoleId(first.getId(), Role.USER);
+        UserRole reloaded = userRoleRepository.findById(key).orElseThrow();
+        assertThat(reloaded.getId()).isEqualTo(key);
+        assertThat(reloaded.getUser().getUsername()).isEqualTo("role-first");
+        assertThat(reloaded.getRole()).isEqualTo(Role.USER);
+        assertThat(userRoleRepository.findByUserEmailIgnoreCase("ROLE-FIRST@EXAMPLE.TEST"))
+                .extracting(UserRole::getRole).containsExactlyInAnyOrder(Role.USER, Role.STAFF);
+        assertThat(userRoleRepository.existsByUserUsernameAndRole("role-first", Role.STAFF)).isTrue();
+        assertThat(userRoleRepository.existsByUserUsernameAndRole("role-first", Role.ADMIN)).isFalse();
+        assertThat(userRoleRepository.existsByUserEmailIgnoreCaseAndRole("ROLE-FIRST@EXAMPLE.TEST", Role.USER)).isTrue();
+        assertThat(userRoleRepository.existsByUserEmailIgnoreCaseAndRole("ROLE-FIRST@EXAMPLE.TEST", Role.ADMIN)).isFalse();
+        userRoleRepository.deleteById(key);
+        userRoleRepository.flush();
+        entityManager.clear();
+        assertThat(userRoleRepository.findById(key)).isEmpty();
+        assertThat(userRoleRepository.findById(new com.pulsepass.pass.domain.UserRoleId(first.getId(), Role.STAFF))).isPresent();
+        assertThat(userRoleRepository.findById(new com.pulsepass.pass.domain.UserRoleId(second.getId(), Role.USER))).isPresent();
+        assertThat(userRepository.findById(first.getId())).isPresent();
     }
 }

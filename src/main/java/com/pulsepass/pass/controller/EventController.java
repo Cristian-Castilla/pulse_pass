@@ -69,6 +69,6 @@ public class EventController {
     @GetMapping("/{eventCode}/tickets/paid")
     public ResponseEntity<List<TicketResponse>> findPaidTicketsByEvent(
             @PathVariable String eventCode) {
-        return ResponseEntity.ok(ticketService.findPaidTicketByEvent(eventCode));
+        return ResponseEntity.ok(ticketService.findPaidTicketsByEvent(eventCode));
     }
 }

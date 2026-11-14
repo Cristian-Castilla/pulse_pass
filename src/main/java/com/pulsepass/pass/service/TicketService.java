@@ -13,7 +13,7 @@ public interface TicketService {
 
     List<TicketResponse> findByUserEmail(String email);
 
-    List<TicketResponse> findPaidTicketByEvent(String eventCode);
+    List<TicketResponse> findPaidTicketsByEvent(String eventCode);
 
     TicketResponse cancel (String ticketCode);
 

@@ -72,6 +72,7 @@ class OwnershipAntiIdorTest extends PostgresContainerSupport {
     @Autowired private EventRepository eventRepository;
     @Autowired private TicketRepository ticketRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private jakarta.persistence.EntityManager entityManager;
 
     private User andrea;
     private User carlos;
@@ -113,11 +114,53 @@ class OwnershipAntiIdorTest extends PostgresContainerSupport {
         return "Bearer " + authService.login(user.getUsername(), RAW_PASSWORD).accessToken();
     }
 
+    @Test
+    void sameJwtLosesPurchasePermissionWhenUserRoleIsRemovedAndRegainsItWhenRestored() throws Exception {
+        String bearer = bearer(andrea);
+        String body = """
+                {"userEmail":"andrea@example.com","eventCode":"CMF-2026","type":"GENERAL"}
+                """;
+        mockMvc.perform(post("/api/tickets").header("Authorization", bearer)
+                .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isCreated());
+        userRoleRepository.deleteAll(userRoleRepository.findByUserUsername("andrea"));
+        userRoleRepository.flush();
+        userRoleRepository.saveAndFlush(new UserRole(andrea, Role.STAFF));
+        entityManager.clear();
+        long before = ticketRepository.count();
+        mockMvc.perform(post("/api/tickets").header("Authorization", bearer)
+                .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isForbidden());
+        assertThat(ticketRepository.count()).isEqualTo(before);
+        User current = userRepository.findById(andrea.getId()).orElseThrow();
+        userRoleRepository.saveAndFlush(new UserRole(current, Role.USER));
+        entityManager.clear();
+        mockMvc.perform(post("/api/tickets").header("Authorization", bearer)
+                .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isCreated());
+        assertThat(ticketRepository.count()).isEqualTo(before + 1);
+    }
+
     private Ticket ticketOwnedBy(User owner, String code) {
         return ticketRepository.saveAndFlush(new Ticket(
                 code, TicketType.VIP, new BigDecimal("250000.00"),
                 TicketStatus.PAID, LocalDateTime.now(), owner,
                 eventRepository.findByEventCode("CMF-2026").orElseThrow()));
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"email", "username", "tickets", "cancel", "ownCancel"})
+    void staffCannotReadPersonalDataOrCancel(String operation) throws Exception {
+        User staff = persistUser("staff", "staff@example.com", Role.STAFF);
+        Ticket ticket = ticketOwnedBy(operation.equals("ownCancel") ? staff : carlos, "STAFF-DENIED");
+        var request = switch (operation) {
+            case "email" -> get("/api/users/by-email").param("email", carlos.getEmail());
+            case "username" -> get("/api/users/by-username").param("username", carlos.getUsername());
+            case "tickets" -> get("/api/tickets/by-user").param("email", carlos.getEmail());
+            default -> patch("/api/tickets/STAFF-DENIED/cancel");
+        };
+        mockMvc.perform(request.header("Authorization", bearer(staff)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("No tiene permisos para realizar esta operación"));
+        assertThat(ticketRepository.findById(ticket.getId()).orElseThrow().getStatus()).isEqualTo(TicketStatus.PAID);
+        assertThat(ticketRepository.count()).isEqualTo(1);
     }
 
     // ------------------------------------------------------------------

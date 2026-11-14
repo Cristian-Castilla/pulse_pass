@@ -49,6 +49,21 @@ public class JwtProperties {
      */
     private Duration accessTokenTtl = Duration.ofMinutes(15);
 
+    void validate() {
+        if (issuer == null || issuer.isBlank()) {
+            throw new IllegalStateException("pulsepass.security.jwt.issuer is required");
+        }
+        // JWT NumericDate has second precision; fractional TTLs can emit exp == iat.
+        if (accessTokenTtl == null || accessTokenTtl.getSeconds() < 1 || accessTokenTtl.getNano() != 0) {
+            throw new IllegalStateException("pulsepass.security.jwt.access-token-ttl must be positive whole seconds");
+        }
+        try {
+            Math.addExact(System.currentTimeMillis(), accessTokenTtl.toMillis());
+        } catch (ArithmeticException ex) {
+            throw new IllegalStateException("pulsepass.security.jwt.access-token-ttl is too large", ex);
+        }
+    }
+
     public String getIssuer() {
         return issuer;
     }

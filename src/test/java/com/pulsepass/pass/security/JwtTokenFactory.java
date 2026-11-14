@@ -20,7 +20,7 @@ import java.util.Date;
 final class JwtTokenFactory {
 
     /**
-     * La misma clave ficticia de 48 bytes que declara {@code src/test/resources/application.yml}.
+     * La misma clave ficticia de 48 bytes que declara {@code src/test/resources/application-test.yml}.
      * Debe coincidir o la firma no será válida para el filtro.
      */
     private static final String TEST_SECRET_BASE64 =

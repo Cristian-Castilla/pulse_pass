@@ -55,6 +55,9 @@ public interface AuthorizationService {
      */
     void requireOwnerOrPrivileged(Long ownerId);
 
+    /** Personal data and per-user listings: owner or ADMIN, never a STAFF bypass. */
+    void requireOwnerOrAdmin(Long ownerId);
+
     /**
      * Autoriza que el email de un recurso pertenezca a la identidad actual.
      *

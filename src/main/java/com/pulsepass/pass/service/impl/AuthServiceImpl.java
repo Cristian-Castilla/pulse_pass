@@ -3,24 +3,28 @@ package com.pulsepass.pass.service.impl;
 import com.pulsepass.pass.domain.Role;
 import com.pulsepass.pass.domain.User;
 import com.pulsepass.pass.domain.UserCredential;
-import com.pulsepass.pass.domain.UserProfile;
+
 import com.pulsepass.pass.domain.UserRole;
 import com.pulsepass.pass.dto.request.RegisterUserRequest;
 import com.pulsepass.pass.dto.response.AuthResponse;
 import com.pulsepass.pass.dto.response.AuthenticatedUserResponse;
 import com.pulsepass.pass.dto.response.UserResponse;
 import com.pulsepass.pass.exception.AuthenticationException;
-import com.pulsepass.pass.exception.BusinessRuleException;
-import com.pulsepass.pass.exception.DuplicateResourceException;
-import com.pulsepass.pass.mapper.UserMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import com.pulsepass.pass.exception.ResourceNotFoundException;
 import com.pulsepass.pass.repository.UserCredentialRepository;
-import com.pulsepass.pass.repository.UserProfileRepository;
+
 import com.pulsepass.pass.repository.UserRepository;
 import com.pulsepass.pass.repository.UserRoleRepository;
 import com.pulsepass.pass.security.CustomUserDetailsService;
 import com.pulsepass.pass.security.SecurityPrincipal;
 import com.pulsepass.pass.service.AuthService;
 import com.pulsepass.pass.service.JwtService;
+import com.pulsepass.pass.service.UserService;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,7 +35,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
+
 import java.util.List;
 
 /**
@@ -50,6 +54,7 @@ import java.util.List;
  */
 @Service
 public class AuthServiceImpl implements AuthService {
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     /**
      * Límite superior de la contraseña en bytes, no en caracteres.
@@ -65,27 +70,26 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final CustomUserDetailsService userDetailsService;
     private final UserRepository userRepository;
-    private final UserProfileRepository userProfileRepository;
+    private final UserService userService;
     private final UserCredentialRepository userCredentialRepository;
     private final UserRoleRepository userRoleRepository;
-    private final UserMapper mapper;
+
 
     public AuthServiceImpl(JwtService jwtService,
                            PasswordEncoder passwordEncoder,
                            CustomUserDetailsService userDetailsService,
                            UserRepository userRepository,
-                           UserProfileRepository userProfileRepository,
+                           UserService userService,
                            UserCredentialRepository userCredentialRepository,
-                           UserRoleRepository userRoleRepository,
-                           UserMapper mapper) {
+                           UserRoleRepository userRoleRepository) {
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.userDetailsService = userDetailsService;
         this.userRepository = userRepository;
-        this.userProfileRepository = userProfileRepository;
+        this.userService = userService;
         this.userCredentialRepository = userCredentialRepository;
         this.userRoleRepository = userRoleRepository;
-        this.mapper = mapper;
+
     }
 
     /**
@@ -102,6 +106,9 @@ public class AuthServiceImpl implements AuthService {
     @Transactional(readOnly = true)
     public AuthResponse login(String identifier, String rawPassword) {
         try {
+            if (rawPassword == null || rawPassword.getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES) {
+                throw new BadCredentialsException("Invalid credentials");
+            }
             UserDetails userDetails = userDetailsService.loadUserByUsername(identifier);
 
             if (!userDetails.isEnabled()) {
@@ -113,8 +120,11 @@ public class AuthServiceImpl implements AuthService {
             }
 
             Long userId = userDetailsService.resolveUserId(userDetails.getUsername());
-            return jwtService.issueToken(userId);
+            AuthResponse response = jwtService.issueToken(userId);
+            log.info("auth_success requestId={}", MDC.get("requestId"));
+            return response;
         } catch (BadCredentialsException | UsernameNotFoundException ex) {
+            log.info("auth_failure requestId={}", MDC.get("requestId"));
             throw new AuthenticationException("Invalid credentials");
         }
     }
@@ -128,42 +138,16 @@ public class AuthServiceImpl implements AuthService {
      * <p>Se ejecuta en una sola transacción porque las cuatro escrituras deben ser todo o nada: si la
      * credencial fallara después de crear el usuario, quedaría una cuenta sin login posible.
      *
-     * <p>Las reglas de negocio de {@code UserService.register} (unicidad de username y email, fecha de
-     * nacimiento no futura) se replican aquí en lugar de invocarlo, porque ese método no escribe la
-     * credencial y no se puede extender sin romper su contrato.
+     * <p>UserService conserva las reglas de usuario/perfil y participa en esta transacción exterior.
      */
     @Override
     @Transactional
     public UserResponse register(RegisterUserRequest request) {
         validatePasswordBytes(request.password());
 
-        if (userRepository.findByUsername(request.username()).isPresent()) {
-            throw new DuplicateResourceException(
-                    "Username " + request.username() + " already exists. Please, choose another username.");
-        }
-
-        if (userRepository.findByEmailIgnoreCase(request.email()).isPresent()) {
-            throw new DuplicateResourceException(
-                    "Email " + request.email() + " already exists. Please, choose another email.");
-        }
-
-        if (request.birthDate().isAfter(LocalDate.now())) {
-            throw new BusinessRuleException(
-                    "Birth date: " + request.birthDate() + " must not be future.");
-        }
-
-        User user = userRepository.save(
-                new User(request.username(), request.email(), true));
-
-        UserProfile userProfile = new UserProfile(
-                request.firstName(),
-                request.lastName(),
-                request.phone(),
-                request.city(),
-                request.birthDate(),
-                user
-        );
-        userProfileRepository.save(userProfile);
+        UserResponse response = userService.register(request);
+        User user = userRepository.findById(response.id())
+                .orElseThrow(() -> new ResourceNotFoundException("Registered user not found"));
 
         userCredentialRepository.save(new UserCredential(
                 user,
@@ -174,7 +158,7 @@ public class AuthServiceImpl implements AuthService {
         // PRD §9.2: "No promover a ADMIN durante el registro público". El rol inicial es siempre USER.
         userRoleRepository.save(new UserRole(user, Role.USER));
 
-        return mapper.toResponse(user);
+        return response;
     }
 
     /**
@@ -219,9 +203,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void validatePasswordBytes(String password) {
+        if (password == null || password.isBlank() || password.length() < 12) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must contain at least 12 characters");
+        }
         int bytes = password.getBytes(StandardCharsets.UTF_8).length;
         if (bytes > MAX_PASSWORD_BYTES) {
-            throw new BusinessRuleException(
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Password must not exceed " + MAX_PASSWORD_BYTES + " bytes");
         }
     }
