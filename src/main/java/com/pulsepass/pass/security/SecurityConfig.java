@@ -1,6 +1,7 @@
 package com.pulsepass.pass.security;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -9,6 +10,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
  * Cadena de filtros de seguridad. PRD de Seguridad §5.1, §14.3.
@@ -24,13 +30,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * implementarse en Services/seguridad a nivel de método". La matriz real es la del PRD §11 y es la
  * que manda (PRD §20: "El spec es la fuente de verdad").
  *
- * <p>Las rutas de propiedad (USR-02, USR-03, TKT-01, TKT-02, TKT-03, TKT-05) caen en
+ * <p>Las rutas de propiedad (USR-02, USR-03, TKT-02, TKT-03, TKT-05) caen en
  * {@code anyRequest().authenticated()} como piso y su verificación de propiedad se resuelve en
  * {@code AuthorizationService}, no en el filtro.
  */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableConfigurationProperties(CorsProperties.class)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -52,6 +59,7 @@ public class SecurityConfig {
             // PRD §14.3: "Solo API Bearer sin cookies de autenticación". Sin cookies, CSRF no
             // aplica; y PRD §8 SEC-008 exige que no se use JSESSIONID como autenticación.
             .csrf(csrf -> csrf.disable())
+            .cors(cors -> {})
 
             // PRD §5.1: "configuración sin sesión". STATELESS: el servidor no guarda nada entre
             // requests y el contexto se reconstruye desde el JWT en cada uno.
@@ -98,11 +106,10 @@ public class SecurityConfig {
                 // borradores se resuelve en EventService (decisión D3), en la capa de servicio.
                 // El literal /api/events/published ya se declaró arriba; /api/events/by-artist
                 // también. Este patrón con variable cubre el resto de los GET de evento.
-                .requestMatchers(HttpMethod.GET, "/api/events/{eventCode}").permitAll()
-
                 // PRD §11 EVT-06: "Público únicamente para eventos publicados; otros estados
                 // requieren STAFF/ADMIN". El filtrado de borradores se resuelve en EventService (D3).
                 .requestMatchers(HttpMethod.GET, "/api/events/by-artist").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/events/{eventCode}").permitAll()
 
                 // ------------------------------------------------------------------
                 // Rutas de administración (PRD §11: EVT-01, EVT-04, EVT-05)
@@ -110,6 +117,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/events").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/events/*/publish").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/events/*/artists/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/tickets").hasRole("USER")
 
                 // ------------------------------------------------------------------
                 // Operaciones de staff (PRD §11: TKT-04, TKT-06)
@@ -134,5 +142,19 @@ public class SecurityConfig {
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(CorsProperties properties) {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(properties.allowedOrigins());
+        configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setExposedHeaders(List.of("X-Request-ID"));
+        configuration.setAllowCredentials(false);
+        configuration.setMaxAge(3600L);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
     }
 }

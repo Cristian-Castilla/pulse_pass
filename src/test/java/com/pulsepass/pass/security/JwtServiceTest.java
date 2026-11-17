@@ -270,6 +270,94 @@ class JwtServiceTest {
                 .isEqualTo("Invalid credentials");
     }
 
+    @Test
+    void validate_requiresExpirationEvenWithValidSignature() {
+        String token = Jwts.builder().subject("42").issuer(ISSUER)
+                .issuedAt(Date.from(Instant.now())).id("test-id")
+                .signWith(key(), Jwts.SIG.HS256).compact();
+
+        assertThrows(AuthenticationException.class, () -> jwtService.validateAndExtractSubject(token));
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {
+            "HS384", "HS512", "iat-missing", "jti-missing", "jti-blank", "iat-future",
+            "exp-before-iat", "exp-equals-iat", "sub-zero", "sub-negative", "sub-overflow", "sub-text"
+    })
+    void validate_rejectsSignedTokensOutsideContract(String defect) {
+        Instant now = Instant.now();
+        var builder = Jwts.builder().subject("42").issuer(ISSUER)
+                .issuedAt(Date.from(now.minusSeconds(60)))
+                .expiration(Date.from(now.plusSeconds(900))).id("test-id");
+        switch (defect) {
+            case "iat-missing" -> builder.issuedAt(null);
+            case "jti-missing" -> builder.id(null);
+            case "jti-blank" -> builder.id("   ");
+            case "iat-future" -> builder.issuedAt(Date.from(now.plusSeconds(60)));
+            case "exp-before-iat" -> builder.issuedAt(Date.from(now.plusSeconds(20)))
+                    .expiration(Date.from(now.plusSeconds(10)));
+            case "exp-equals-iat" -> builder.issuedAt(Date.from(now.plusSeconds(10)))
+                    .expiration(Date.from(now.plusSeconds(10)));
+            case "sub-zero" -> builder.subject("0");
+            case "sub-negative" -> builder.subject("-1");
+            case "sub-overflow" -> builder.subject("9223372036854775808");
+            case "sub-text" -> builder.subject("someone");
+        }
+        // The 64-byte test key permits HS384/HS512: reject policy, not insufficient key size.
+        SecretKey strongKey = io.jsonwebtoken.security.Keys.hmacShaKeyFor(new byte[64]);
+        JwtProperties properties = new JwtProperties();
+        properties.setSecretBase64(Base64.getEncoder().encodeToString(strongKey.getEncoded()));
+        JwtServiceImpl service = new JwtServiceImpl(properties);
+        var algorithm = switch (defect) {
+            case "HS384" -> Jwts.SIG.HS384;
+            case "HS512" -> Jwts.SIG.HS512;
+            default -> Jwts.SIG.HS256;
+        };
+        String token = builder.signWith(strongKey, algorithm).compact();
+
+        assertThat(assertThrows(AuthenticationException.class,
+                () -> service.validateAndExtractSubject(token)).getMessage()).isEqualTo("Invalid credentials");
+    }
+
+    @Test
+    void validate_allowsThirtySecondsOfFutureIssuedAtWithoutExtendingExpiration() {
+        Instant now = Instant.now();
+        String acceptable = Jwts.builder().subject("42").issuer(ISSUER).id("skew-test")
+                .issuedAt(Date.from(now.plusSeconds(30))).expiration(Date.from(now.plusSeconds(60)))
+                .signWith(key(), Jwts.SIG.HS256).compact();
+        assertThat(jwtService.validateAndExtractSubject(acceptable)).isEqualTo(42L);
+
+        String expired = Jwts.builder().subject("42").issuer(ISSUER).id("expired-test")
+                .issuedAt(Date.from(now.minusSeconds(60))).expiration(Date.from(now.minusSeconds(1)))
+                .signWith(key(), Jwts.SIG.HS256).compact();
+        assertThrows(AuthenticationException.class, () -> jwtService.validateAndExtractSubject(expired));
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"issuer-null", "issuer-blank", "ttl-null", "ttl-zero", "ttl-negative", "ttl-subsecond", "ttl-fractional", "ttl-overflow"})
+    void constructor_rejectsInvalidIssuerOrTtl(String defect) {
+        JwtProperties properties = new JwtProperties();
+        properties.setSecretBase64(VALID_SECRET_BASE64);
+        switch (defect) {
+            case "issuer-null" -> properties.setIssuer(null);
+            case "issuer-blank" -> properties.setIssuer("   ");
+            case "ttl-null" -> properties.setAccessTokenTtl(null);
+            case "ttl-zero" -> properties.setAccessTokenTtl(Duration.ZERO);
+            case "ttl-negative" -> properties.setAccessTokenTtl(Duration.ofSeconds(-1));
+            case "ttl-subsecond" -> properties.setAccessTokenTtl(Duration.ofMillis(500));
+            case "ttl-fractional" -> properties.setAccessTokenTtl(Duration.ofMillis(1500));
+            case "ttl-overflow" -> properties.setAccessTokenTtl(Duration.ofSeconds(Long.MAX_VALUE));
+        }
+        assertThrows(IllegalStateException.class, () -> new JwtServiceImpl(properties));
+    }
+
+    @Test
+    void issueToken_rejectsNonPositiveOrMissingUserId() {
+        for (Long id : new Long[]{null, 0L, -1L}) {
+            assertThrows(IllegalArgumentException.class, () -> jwtService.issueToken(id));
+        }
+    }
+
     // ---------------------------------------------------------- clave débil
 
     @Test

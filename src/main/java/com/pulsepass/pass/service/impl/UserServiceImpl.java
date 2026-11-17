@@ -78,7 +78,7 @@ public class UserServiceImpl implements UserService {
 
         // PRD §11 USR-02: "Propio usuario, o ADMIN con propósito autorizado".
         // La comparación es por ID persistente (PRD §11.1), no por string de email.
-        authorizationService.requireOwnerOrPrivileged(user.getId());
+        authorizationService.requireOwnerOrAdmin(user.getId());
 
         return mapper.toResponse(user);
     }
@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Username doesn't exist: " + username));
 
         // PRD §11 USR-03: "Propio usuario, o ADMIN con propósito autorizado"
-        authorizationService.requireOwnerOrPrivileged(user.getId());
+        authorizationService.requireOwnerOrAdmin(user.getId());
 
         return mapper.toResponse(user);
     }

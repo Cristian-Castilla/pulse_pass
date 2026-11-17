@@ -2,7 +2,7 @@ package com.pulsepass.pass;
 
 import com.pulsepass.pass.domain.User;
 import com.pulsepass.pass.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,22 +20,23 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * - existsByUsername
  * - existsByEmail
  */
+@org.springframework.transaction.annotation.Transactional
 class UserRepositoryTest extends PostgresContainerSupport {
 
     @Autowired
     private UserRepository userRepository;
-
-    @BeforeEach
-    void cleanDatabase() {
-        userRepository.deleteAllInBatch();
-    }
+    @Autowired private jakarta.persistence.EntityManager entityManager;
 
     @Test
     void shouldSaveAndFindUserByUsername() {
         User user = new User("andrea", "andrea@example.com", true);
         userRepository.saveAndFlush(user);
 
-        assertThat(userRepository.findByUsername("andrea")).isPresent();
+        entityManager.clear();
+        User reloaded = userRepository.findByUsername("andrea").orElseThrow();
+        assertThat(reloaded.getId()).isEqualTo(user.getId());
+        assertThat(reloaded.getEmail()).isEqualTo("andrea@example.com");
+        assertThat(reloaded.getActive()).isTrue();
     }
 
     @Test

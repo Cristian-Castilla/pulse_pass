@@ -2,6 +2,7 @@ package com.pulsepass.pass;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 /**
@@ -12,11 +13,14 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * </p>
  */
 @SpringBootTest
+@ActiveProfiles("test")
 public abstract class PostgresContainerSupport {
 
     @ServiceConnection
     static final PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:16-alpine");
+            new PostgreSQLContainer<>("postgres:16-alpine")
+                    // Slow Docker Desktop hosts need more time; this does not delay a ready database.
+                    .withStartupTimeout(java.time.Duration.ofMinutes(3));
 
     static {
         postgres.start();

@@ -57,6 +57,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
 
+    @Mock private com.pulsepass.pass.service.UserService userService;
     @Mock private JwtService jwtService;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private UserRepository userRepository;
@@ -156,24 +157,35 @@ class AuthServiceImplTest {
         assertThat(unknown.getMessage()).isEqualTo("Invalid credentials");
     }
 
+    @Test
+    void loginOver72Utf8BytesRejectsBeforeLoadingIdentity() {
+        org.mockito.Mockito.lenient().when(userDetailsService.loadUserByUsername("andrea"))
+                .thenReturn(userDetailsFor("andrea", "hash", true));
+        org.mockito.Mockito.lenient().when(passwordEncoder.matches("é".repeat(37), "hash")).thenReturn(true);
+        AuthenticationException ex = assertThrows(AuthenticationException.class,
+                () -> authService.login("andrea", "é".repeat(37)));
+        assertThat(ex.getMessage()).isEqualTo("Invalid credentials");
+        org.mockito.Mockito.verifyNoInteractions(userDetailsService, passwordEncoder, jwtService);
+    }
+
     // ------------------------------------------------------------ register
 
     @Test
-    void register_createsUserCredentialAndRoleAtomically() {
+    void disabledAccountNeverChecksPasswordOrIssuesToken() {
+        when(userDetailsService.loadUserByUsername("inactive"))
+                .thenReturn(userDetailsFor("inactive", "test-hash", false));
+        AuthenticationException failure = assertThrows(AuthenticationException.class,
+                () -> authService.login("inactive", "Fictitious-password!"));
+        assertThat(failure.getMessage()).isEqualTo("Invalid credentials");
+        org.mockito.Mockito.verifyNoInteractions(passwordEncoder, jwtService);
+        verify(userDetailsService, never()).resolveUserId(anyString());
+    }
+
+    @Test
+    void register_delegatesCreationAndCreatesCredentialAndUserRole() {
         // PRD §10 FR-SEC-AUTH-001: "Crea User + credencial BCrypt + ROLE_USER de forma atómica; 201"
-        when(userRepository.findByUsername("andrea")).thenReturn(Optional.empty());
-        when(userRepository.findByEmailIgnoreCase("andrea@example.com")).thenReturn(Optional.empty());
-        when(userRepository.save(any(User.class)))
-                .thenAnswer(invocation -> {
-                    User u = invocation.getArgument(0);
-                    // Refleja lo que Hibernate hace al persistir: asigna el id
-                    return new User(u.getUsername(), u.getEmail(), u.getActive()) {
-                        @Override public Long getId() { return 42L; }
-                    };
-                });
+        stubRegistration(validRequest(), 42L);
         when(passwordEncoder.encode("UnaFraseSeguraLarga2026!")).thenReturn("$2a$10$hashed");
-        when(mapper.toResponse(any(User.class)))
-                .thenReturn(new UserResponse(42L, "andrea", "andrea@example.com", true));
 
         UserResponse response = authService.register(validRequest());
 
@@ -197,13 +209,8 @@ class AuthServiceImplTest {
 
     @Test
     void register_hashesPasswordAndNeverPersistsPlainText() {
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
-        when(userRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
-        when(userRepository.save(any(User.class)))
-                .thenAnswer(invocation -> new User("andrea", "andrea@example.com", true));
+        stubRegistration(validRequest(), 1L);
         when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$hashedvalue");
-        when(mapper.toResponse(any(User.class)))
-                .thenReturn(new UserResponse(1L, "andrea", "andrea@example.com", true));
 
         authService.register(validRequest());
 
@@ -216,8 +223,7 @@ class AuthServiceImplTest {
 
     @Test
     void register_withDuplicateUsername_throwsAndWritesNothing() {
-        when(userRepository.findByUsername("andrea"))
-                .thenReturn(Optional.of(new User("andrea", "andrea@example.com", true)));
+        when(userService.register(validRequest())).thenThrow(new DuplicateResourceException("Duplicate username"));
 
         assertThrows(DuplicateResourceException.class, () -> authService.register(validRequest()));
 
@@ -228,9 +234,7 @@ class AuthServiceImplTest {
 
     @Test
     void register_withDuplicateEmail_throwsAndWritesNothing() {
-        when(userRepository.findByUsername("andrea")).thenReturn(Optional.empty());
-        when(userRepository.findByEmailIgnoreCase("andrea@example.com"))
-                .thenReturn(Optional.of(new User("otro", "andrea@example.com", true)));
+        when(userService.register(validRequest())).thenThrow(new DuplicateResourceException("Duplicate email"));
 
         assertThrows(DuplicateResourceException.class, () -> authService.register(validRequest()));
 
@@ -244,8 +248,7 @@ class AuthServiceImplTest {
                 "andrea", "andrea@example.com", "Andrea", "Gomez",
                 "3001234567", "Santa Marta", LocalDate.now().plusDays(1),
                 "UnaFraseSeguraLarga2026!");
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
-        when(userRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
+        when(userService.register(request)).thenThrow(new BusinessRuleException("Future birth date"));
 
         assertThrows(BusinessRuleException.class, () -> authService.register(request));
 
@@ -262,7 +265,7 @@ class AuthServiceImplTest {
                 "andrea", "andrea@example.com", "Andrea", "Gomez",
                 "3001234567", "Santa Marta", LocalDate.of(1995, 5, 15), longPassword);
 
-        assertThrows(BusinessRuleException.class, () -> authService.register(request));
+        assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> authService.register(request));
 
         verify(userRepository, never()).save(any(User.class));
         verify(userCredentialRepository, never()).save(any(UserCredential.class));
@@ -275,18 +278,53 @@ class AuthServiceImplTest {
                 "andrea", "andrea@example.com", "Andrea", "Gomez",
                 "3001234567", "Santa Marta", LocalDate.of(1995, 5, 15), exact);
 
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
-        when(userRepository.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
-        when(userRepository.save(any(User.class)))
-                .thenAnswer(invocation -> new User("andrea", "andrea@example.com", true));
+        stubRegistration(request, 1L);
         when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$hashed");
-        when(mapper.toResponse(any(User.class)))
-                .thenReturn(new UserResponse(1L, "andrea", "andrea@example.com", true));
 
         UserResponse response = authService.register(request);
 
         assertThat(response.username()).isEqualTo("andrea");
         verify(userCredentialRepository).save(any(UserCredential.class));
+    }
+
+    @Test
+    void register_nullPasswordRejectsBeforeWriting() {
+        RegisterUserRequest request = new RegisterUserRequest(
+                "andrea", "andrea@example.com", "Andrea", "Gomez", null, null,
+                LocalDate.now().minusYears(25), null);
+        assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> authService.register(request));
+        verify(userRepository, never()).save(any());
+        verify(userCredentialRepository, never()).save(any());
+        verify(userRoleRepository, never()).save(any());
+    }
+
+    @Test
+    void register_delegatesBusinessRules() {
+        User saved = new User("andrea", "andrea@example.com", true);
+        UserResponse expected = new UserResponse(42L, "andrea", "andrea@example.com", true);
+        org.mockito.Mockito.lenient().when(userService.register(validRequest())).thenReturn(expected);
+        org.mockito.Mockito.lenient().when(userRepository.findById(42L)).thenReturn(Optional.of(saved));
+        assertThat(authService.register(validRequest())).isSameAs(expected);
+        verify(userService).register(validRequest());
+        verify(userRepository, never()).save(any());
+    }
+
+    private void stubRegistration(RegisterUserRequest request, Long id) {
+        when(userService.register(request)).thenReturn(new UserResponse(id, "andrea", "andrea@example.com", true));
+        when(userRepository.findById(id)).thenReturn(Optional.of(new User("andrea", "andrea@example.com", true)));
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.NullAndEmptySource
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"short", "            ", "ééééééééééééééééééééééééééééééééééééé"})
+    void registerInvalidPasswordIsBadRequest(String password) {
+        RegisterUserRequest request = new RegisterUserRequest("andrea", "andrea@example.com", "Andrea", "Gomez",
+                null, null, LocalDate.now().minusYears(25), password);
+        var ex = assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> authService.register(request));
+        assertThat(ex.getStatusCode().value()).isEqualTo(400);
+        org.mockito.Mockito.verifyNoInteractions(userService, userRepository, passwordEncoder,
+                userCredentialRepository, userRoleRepository);
     }
 
     // ----------------------------------------------------------- current user

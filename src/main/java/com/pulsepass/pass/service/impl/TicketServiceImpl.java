@@ -112,7 +112,7 @@ public class TicketServiceImpl implements TicketService {
         BigDecimal price = priceCalculator.calculatePrice(request.type());
 
         // Crear ticket
-        String ticketCode = "TCK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String ticketCode = "TCK-" + UUID.randomUUID().toString().toUpperCase(java.util.Locale.ROOT);
         Ticket ticket = new Ticket(
                 ticketCode,
                 request.type(),
@@ -161,7 +161,7 @@ public class TicketServiceImpl implements TicketService {
         User requested = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
 
-        authorizationService.requireOwnerOrPrivileged(requested.getId());
+        authorizationService.requireOwnerOrAdmin(requested.getId());
 
         return ticketRepository.findByUserEmailIgnoreCaseOrderByPurchaseDateDesc(email)
                 .stream()
@@ -170,7 +170,7 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public List<TicketResponse> findPaidTicketByEvent(String eventCode) {
+    public List<TicketResponse> findPaidTicketsByEvent(String eventCode) {
         return ticketRepository.findPaidTicketsByEventCode(eventCode)
                 .stream()
                 .map(mapper::toResponse)
@@ -188,7 +188,11 @@ public class TicketServiceImpl implements TicketService {
         //
         // La autorización va ANTES de las reglas de negocio: si el ticket no es del principal, no
         // se ejecuta ninguna validación y no se filtra el estado real del ticket.
-        authorizationService.requireOwnerOrPrivileged(ticket.getUser().getId());
+        if (authorizationService.hasRole(Role.ADMIN)) {
+            authorizationService.requireOwnerOrAdmin(ticket.getUser().getId());
+        } else {
+            authorizationService.requireSelf(ticket.getUser().getId());
+        }
 
         // BR-TICKET-010: Solo PAID puede cancelarse
         if (ticket.getStatus() != TicketStatus.PAID) {

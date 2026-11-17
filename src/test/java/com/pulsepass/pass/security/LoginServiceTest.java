@@ -52,6 +52,23 @@ class LoginServiceTest extends PostgresContainerSupport {
     @Autowired private UserRoleRepository userRoleRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
+    static java.util.stream.Stream<String> bcryptBoundaryPasswords() {
+        return java.util.stream.Stream.of("a".repeat(72), "é".repeat(36));
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.MethodSource("bcryptBoundaryPasswords")
+    void bcryptBoundaryAuthenticatesExactPasswordButNeverItsLongerAlias(String password) {
+        User user = userRepository.saveAndFlush(new User("byteboundary", "byteboundary@example.com", true));
+        userCredentialRepository.saveAndFlush(new UserCredential(user, passwordEncoder.encode(password), null));
+        userRoleRepository.saveAndFlush(new UserRole(user, Role.USER));
+        assertThat(jwtService.validateAndExtractSubject(authService.login("byteboundary", password).accessToken()))
+                .isEqualTo(user.getId());
+        AuthenticationException rejected = assertThrows(AuthenticationException.class,
+                () -> authService.login("byteboundary", password + "suffix"));
+        assertThat(rejected.getMessage()).isEqualTo("Invalid credentials");
+    }
+
     @BeforeEach
     void cleanDatabase() {
         userRoleRepository.deleteAllInBatch();

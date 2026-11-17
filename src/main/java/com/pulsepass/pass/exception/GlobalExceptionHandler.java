@@ -5,7 +5,15 @@ import com.pulsepass.pass.exception.AccessDeniedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.FieldError;
+import org.springframework.web.ErrorResponseException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -17,6 +25,25 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingParameter(MissingServletRequestParameterException ex) {
+        return ResponseEntity.badRequest().body(new ErrorResponse(
+                LocalDateTime.now(), 400, "Bad Request", "Required request parameter is missing",
+                Map.of(ex.getParameterName(), "Parameter is required")));
+    }
+
+    @ExceptionHandler({HttpRequestMethodNotSupportedException.class,
+            HttpMediaTypeNotSupportedException.class, NoResourceFoundException.class,
+            NoHandlerFoundException.class, ErrorResponseException.class})
+    public ResponseEntity<ErrorResponse> handleHttpError(Exception ex) {
+        org.springframework.web.ErrorResponse error = (org.springframework.web.ErrorResponse) ex;
+        HttpStatus status = HttpStatus.valueOf(error.getStatusCode().value());
+        return ResponseEntity.status(status).headers(error.getHeaders()).body(new ErrorResponse(
+                LocalDateTime.now(), status.value(), status.getReasonPhrase(), status.getReasonPhrase(), Map.of()));
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
@@ -118,6 +145,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+        log.info("security_denied status=403 requestId={}", MDC.get("requestId"));
         ErrorResponse body = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.FORBIDDEN.value(),
@@ -130,6 +158,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
+        log.error("request_failed type={} requestId={}", ex.getClass().getSimpleName(), MDC.get("requestId"));
         ErrorResponse body = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),

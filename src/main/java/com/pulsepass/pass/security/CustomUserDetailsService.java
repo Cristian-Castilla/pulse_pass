@@ -138,7 +138,12 @@ public class CustomUserDetailsService implements UserDetailsService {
      */
     @Transactional(readOnly = true)
     public List<GrantedAuthority> loadAuthorities(Long userId) {
-        return userRoleRepository.findByUserUsername(resolveUsername(userId)).stream()
+        return loadAuthorities(resolveUsername(userId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<GrantedAuthority> loadAuthorities(String username) {
+        return userRoleRepository.findByUserUsername(username).stream()
                 .<GrantedAuthority>map(userRole ->
                         new SimpleGrantedAuthority("ROLE_" + userRole.getRole().name()))
                 .toList();

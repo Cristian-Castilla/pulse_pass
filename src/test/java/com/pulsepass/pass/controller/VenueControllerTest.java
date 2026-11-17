@@ -78,9 +78,8 @@ class VenueControllerTest extends ControllerHttpSupport {
     }
 
     @Test
-    void findByCode_unexpectedException_returns500() throws Exception {
-        // PRD §13: "Error inesperado → 500 Internal Server Error → Handler previo; sin stack trace".
-        // Se provoca un fallo real contra la base: un id de venue que rompe la consulta.
+    void findByCode_unknownCodeIsNotAnUnexpectedFailure() throws Exception {
+        // A missing row is 404; the genuine 500 path is covered by VenueControllerSliceTest.
         mockMvc.perform(get("/api/venues/{code}", "ERR-500")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());

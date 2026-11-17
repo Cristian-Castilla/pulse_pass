@@ -10,21 +10,11 @@ spring:
   # el arranque (ver JwtServiceImpl.resolveKey). PRD §8 SEC-004: "Clave JJWT
   # desde entorno; prohibida en código fuente".
   #
-  # Generar una clave (PowerShell):
-  #   [Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Max 256 }))
+  # Generar una clave criptográfica (PowerShell 7):
+  #   [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
   # Generar una clave (bash):
   #   head -c 48 /dev/urandom | base64
   # ---------------------------------------------------------------------
-  config:
-    import: "optional:file:.env.properties"
-
-pulsepass:
-  security:
-    jwt:
-      issuer: ${PULSEPASS_JWT_ISSUER:pulsepass-api}
-      secret-base64: ${PULSEPASS_JWT_SECRET_BASE64}
-      access-token-ttl: ${PULSEPASS_JWT_ACCESS_TOKEN_TTL:PT15M}
-
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/pulsepass}
     username: ${DB_USER:postgres}
@@ -46,3 +36,19 @@ pulsepass:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+pulsepass:
+  security:
+    cors:
+      allowed-origins: ${PULSEPASS_CORS_ALLOWED_ORIGINS:}
+    jwt:
+      issuer: ${PULSEPASS_JWT_ISSUER:pulsepass-api}
+      secret-base64: ${PULSEPASS_JWT_SECRET_BASE64}
+      access-token-ttl: ${PULSEPASS_JWT_ACCESS_TOKEN_TTL:PT15M}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "!test"
+    import: "optional:file:.env.properties"

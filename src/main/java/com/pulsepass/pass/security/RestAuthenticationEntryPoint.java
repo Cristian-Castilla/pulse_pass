@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /**
  * Responde 401 cuando una ruta protegida es consultada sin identidad válida.
@@ -32,6 +35,8 @@ import java.time.LocalDateTime;
 @Component
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
+    private static final Logger log = LoggerFactory.getLogger(RestAuthenticationEntryPoint.class);
+
     /** Mensaje uniforme de 401. Igual al de {@code AuthServiceImpl} y al de {@code JwtServiceImpl}. */
     static final String MESSAGE = "Invalid credentials";
 
@@ -45,6 +50,8 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
+
+        log.info("security_denied status=401 requestId={}", MDC.get("requestId"));
 
         ErrorResponse body = new ErrorResponse(
                 LocalDateTime.now(),

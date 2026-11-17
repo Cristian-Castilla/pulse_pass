@@ -1,391 +1,251 @@
 package com.pulsepass.pass.security;
 
 import com.pulsepass.pass.PostgresContainerSupport;
-import com.pulsepass.pass.domain.Role;
-import com.pulsepass.pass.domain.User;
-import com.pulsepass.pass.domain.UserCredential;
-import com.pulsepass.pass.domain.UserProfile;
-import com.pulsepass.pass.domain.UserRole;
-import com.pulsepass.pass.domain.Venue;
-import com.pulsepass.pass.repository.UserCredentialRepository;
-import com.pulsepass.pass.repository.UserProfileRepository;
-import com.pulsepass.pass.repository.UserRepository;
-import com.pulsepass.pass.repository.UserRoleRepository;
-import com.pulsepass.pass.repository.VenueRepository;
-import com.pulsepass.pass.service.AuthService;
+import com.pulsepass.pass.domain.*;
+import com.pulsepass.pass.repository.*;
+import com.pulsepass.pass.service.JwtService;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-/**
- * Matriz de autorización de las 20 operaciones del PRD §11 contra la {@code SecurityConfig}.
- *
- * PRD de Seguridad §17.4: "Para cada una de las 20 operaciones, documentar al menos: rol permitido,
- * rol prohibido, anónimo y, cuando exista ownership, mismo propietario / tercero."
- * PRD §17.2, T-SEC-002/003: anónimo 401, USER sin rol 403.
- * PRD §14.3 adv. 4: "El orden de matchers importa: rutas específicas antes de patrones generales".
- *
- * <p>Este test cubre la capa de <b>rol</b>. La capa de <b>propiedad</b> (anti-IDOR) se verifica en
- * OwnershipAntiIdorTest; aquí solo se comprueba que la ruta exige la identidad correcta.
- *
- * <p>El body de las peticiones que requieren cuerpo se construye con un JSON mínimo y válido; los
- * tests de negocio de cada operación siguen en sus propias clases (Fase 3).
- */
+/** Real filter/controller/service/PostgreSQL requests for all 20 legacy routes; no mocked identity. */
 @AutoConfigureMockMvc
 @Transactional
 class AuthorizationMatrixTest extends PostgresContainerSupport {
-
-    private static final String RAW_PASSWORD = "UnaFraseSeguraLarga2026!";
-
-    @Autowired private MockMvc mockMvc;
-    @Autowired private AuthService authService;
-    @Autowired private UserRepository userRepository;
-    @Autowired private UserProfileRepository userProfileRepository;
-    @Autowired private UserCredentialRepository userCredentialRepository;
-    @Autowired private UserRoleRepository userRoleRepository;
-    @Autowired private VenueRepository venueRepository;
-    @Autowired private PasswordEncoder passwordEncoder;
-
-    private User andrea;
-    private User carlos;
-    private User laura;
-    private User sofia;
-
-    @BeforeEach
-    void cleanDatabase() {
-        userRoleRepository.deleteAllInBatch();
-        userProfileRepository.deleteAllInBatch();
-        userCredentialRepository.deleteAllInBatch();
-        userRepository.deleteAllInBatch();
-        venueRepository.deleteAllInBatch();
-
-        andrea = persistUser("andrea", "andrea@example.com", Role.USER);
-        carlos = persistUser("carlos", "carlos@example.com", Role.USER);
-        laura = persistUser("laura", "laura@example.com", Role.STAFF);
-        sofia = persistUser("sofia", "sofia@example.com", Role.ADMIN);
-
-        // El venue de referencia del PRD §16.1 (capacidad 5000, decisión A-03).
-        venueRepository.saveAndFlush(new Venue(
-                "VEN-SMR-01", "Marina Convention Center", "Santa Marta",
-                "Cra 1 #1-1", 5000L, true));
+    enum Actor {
+        ANONYMOUS, NONE, USER(Role.USER), STAFF(Role.STAFF), ADMIN(Role.ADMIN),
+        USER_STAFF(Role.USER, Role.STAFF), USER_ADMIN(Role.USER, Role.ADMIN),
+        STAFF_ADMIN(Role.STAFF, Role.ADMIN), ALL(Role.USER, Role.STAFF, Role.ADMIN);
+        final List<Role> roles;
+        Actor(Role... roles) { this.roles = List.of(roles); }
+        boolean has(Role role) { return roles.contains(role); }
+        boolean operational() { return has(Role.STAFF) || has(Role.ADMIN); }
     }
 
-    private User persistUser(String username, String email, Role role) {
-        User user = userRepository.saveAndFlush(new User(username, email, true));
-        userProfileRepository.saveAndFlush(new UserProfile(
-                "Nombre", "Apellido", "3001234567", "Santa Marta",
-                LocalDate.of(1995, 5, 15), user));
-        userCredentialRepository.saveAndFlush(new UserCredential(
-                user, passwordEncoder.encode(RAW_PASSWORD), null));
-        userRoleRepository.saveAndFlush(new UserRole(user, role));
+    enum Route {
+        VEN01, VEN02, EVT01, EVT02, EVT03, EVT04, EVT05, EVT06,
+        ART01, ART02, ART03, USR01, USR02, USR03, TKT01, TKT02, TKT03, TKT04, TKT05, TKT06;
+        boolean owned() { return List.of(USR02, USR03, TKT01, TKT02, TKT03, TKT05).contains(this); }
+        int expected(Actor actor, boolean owner) {
+            return switch (this) {
+                case VEN01, VEN02, EVT02, EVT03, EVT06, ART01, ART02, ART03 -> 200;
+                case USR01 -> 201;
+                default -> {
+                    if (actor == Actor.ANONYMOUS) yield 401;
+                    boolean allowed = switch (this) {
+                        case EVT01, EVT04, EVT05 -> actor.has(Role.ADMIN);
+                        case USR02, USR03, TKT03 -> owner || actor.has(Role.ADMIN);
+                        case TKT01 -> owner && actor.has(Role.USER);
+                        case TKT02 -> owner || actor.operational();
+                        case TKT04, TKT06 -> actor.operational();
+                        case TKT05 -> actor.has(Role.ADMIN) || (owner && actor.has(Role.USER));
+                        default -> false;
+                    };
+                    yield allowed ? (this == EVT01 || this == TKT01 ? 201 : 200) : 403;
+                }
+            };
+        }
+    }
+
+    @Autowired MockMvc mvc;
+    @Autowired JwtService jwtService;
+    @Autowired UserRepository users;
+    @Autowired UserCredentialRepository credentials;
+    @Autowired UserProfileRepository profiles;
+    @Autowired UserRoleRepository roles;
+    @Autowired VenueRepository venues;
+    @Autowired ArtistRepository artists;
+    @Autowired EventRepository events;
+    @Autowired TicketRepository tickets;
+    @Autowired PasswordEncoder encoder;
+    @Autowired EntityManager em;
+    @Autowired JdbcTemplate sql;
+    private static String passwordHash;
+    private Venue venue;
+    private Artist artist;
+    private Event published;
+    private Event draft;
+
+    @BeforeEach
+    void fixtures() {
+        tickets.deleteAll();
+        events.deleteAll();
+        artists.deleteAll();
+        venues.deleteAll();
+        roles.deleteAll();
+        profiles.deleteAll();
+        credentials.deleteAll();
+        users.deleteAll();
+        em.flush();
+        em.clear();
+        if (passwordHash == null) passwordHash = encoder.encode("MatrixOnlyFictitious2026!");
+        venue = venues.saveAndFlush(new Venue("MATRIX-VEN", "Matrix venue", "Santa Marta", "Address", 5000L, true));
+        artist = artists.saveAndFlush(new Artist("Matrix artist", "Colombia", "Electronic", true));
+        published = events.saveAndFlush(event("MATRIX-PUB", EventStatus.PUBLISHED));
+        published.addArtist(artist);
+        draft = events.saveAndFlush(event("MATRIX-DRAFT", EventStatus.DRAFT));
+    }
+
+    private Event event(String code, EventStatus status) {
+        return new Event(code, "Matrix event", "Description", EventCategory.MUSIC, status,
+                LocalDateTime.now().plusDays(30), 0, null, venue);
+    }
+
+    private User user(String name, List<Role> userRoles) {
+        User user = users.saveAndFlush(new User(name, name + "@example.com", true));
+        profiles.saveAndFlush(new UserProfile("First", "Last", "3001234567", "Santa Marta",
+                LocalDate.of(1995, 1, 1), user));
+        credentials.saveAndFlush(new UserCredential(user, passwordHash, null));
+        for (Role role : userRoles) roles.saveAndFlush(new UserRole(user, role));
         return user;
     }
 
-    private String bearer(User user) {
-        return "Bearer " + authService.login(user.getUsername(), RAW_PASSWORD).accessToken();
+    private Ticket ticket(String code, TicketStatus status, User owner, Event event) {
+        return tickets.saveAndFlush(new Ticket(code, TicketType.GENERAL, new BigDecimal("100000"),
+                status, LocalDateTime.now(), owner, event));
     }
 
-    private static final String VALID_EVENT_BODY = """
-            {
-                "eventCode": "CMF-2026",
-                "name": "Caribbean Music Fest 2026",
-                "description": "Festival",
-                "category": "MUSIC",
-                "eventDate": "2026-12-31T19:00:00",
-                "minimumAge": 18,
-                "venueCode": "VEN-SMR-01"
+    static Stream<Arguments> requests() {
+        return Arrays.stream(Route.values()).flatMap(route -> Arrays.stream(Actor.values()).flatMap(actor ->
+                (route.owned() && actor != Actor.ANONYMOUS ? Stream.of(true, false) : Stream.of(false))
+                        .map(owner -> Arguments.of(route, actor, owner))));
+    }
+
+    @ParameterizedTest(name = "{0} {1} owner={2}")
+    @MethodSource("requests")
+    void realAuthorizationMatrix(Route route, Actor actor, boolean owner) throws Exception {
+        User requester = user("requester", actor.roles);
+        User target = owner ? requester : user("target", List.of(Role.USER));
+        ticket("MATRIX-PAID", TicketStatus.PAID, target, published);
+        ticket("MATRIX-USED", TicketStatus.USED, target, published);
+        ticket("MATRIX-CANCELLED", TicketStatus.CANCELLED, target, published);
+        ticket("MATRIX-RESERVED", TicketStatus.RESERVED, target, published);
+        ticket("MATRIX-OTHER-EVENT", TicketStatus.PAID, target, draft);
+        String bearer = "Bearer " + jwtService.issueToken(requester.getId()).accessToken();
+        MockHttpServletRequestBuilder request = request(route, target);
+        if (actor != Actor.ANONYMOUS) request.header("Authorization", bearer);
+        List<List<java.util.Map<String, Object>>> before = snapshot();
+        int expected = route.expected(actor, owner);
+        var result = mvc.perform(request);
+        assertThat(result.andReturn().getResponse().getStatus()).as("%s %s owner=%s", route, actor, owner)
+                .isEqualTo(expected);
+        if (expected >= 400) {
+            result.andExpect(jsonPath("$.status").value(expected));
+            assertThat(snapshot()).as("Denied requests must not change any business/security row").isEqualTo(before);
+            return;
+        }
+        switch (route) {
+            case VEN01 -> result.andExpect(jsonPath("$.code").value("MATRIX-VEN"));
+            case VEN02 -> result.andExpect(jsonPath("$[0].code").value("MATRIX-VEN"));
+            case ART01, ART02 -> result.andExpect(jsonPath("$.stageName").value("Matrix artist"));
+            case ART03 -> result.andExpect(jsonPath("$[0].stageName").value("Matrix artist"));
+            case EVT01 -> {
+                result.andExpect(jsonPath("$.status").value("DRAFT"));
+                assertThat(events.findByEventCode("MATRIX-NEW")).isPresent();
             }
-            """;
-
-    // ------------------------------------------------------------------
-    // VEN-01 / VEN-02 — públicos
-    // ------------------------------------------------------------------
-
-    @Test
-    void ven01_venueByCode_isPublic() throws Exception {
-        // PRD §11 VEN-01: "Público"
-        assertThat(statusOf(get("/api/venues/VEN-SMR-01"))).isEqualTo(200);
-        assertThat(statusOf(get("/api/venues/VEN-SMR-01").header("Authorization", bearer(andrea))))
-                .isEqualTo(200);
-    }
-
-    @Test
-    void ven02_activeVenues_isPublic() throws Exception {
-        // PRD §11 VEN-02: "Público". PRD §14.3 adv. 3: verificar con una prueba HTTP explícita.
-        assertThat(statusOf(get("/api/venues/active"))).isEqualTo(200);
-        assertThat(statusOf(get("/api/venues/active").header("Authorization", bearer(laura))))
-                .isEqualTo(200);
-    }
-
-    // ------------------------------------------------------------------
-    // EVT-01 — ADMIN
-    // ------------------------------------------------------------------
-
-    @Test
-    void evt01_createEvent_anonymousGets401() throws Exception {
-        // T-SEC-002
-        assertThat(statusOf(post("/api/events").contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_EVENT_BODY))).isEqualTo(401);
-    }
-
-    @Test
-    void evt01_createEvent_userGets403() throws Exception {
-        // T-SEC-003: "USER POST /api/events → 403, sin invocar Service"
-        assertThat(statusOf(post("/api/events").header("Authorization", bearer(andrea))
-                .contentType(MediaType.APPLICATION_JSON).content(VALID_EVENT_BODY))).isEqualTo(403);
-    }
-
-    @Test
-    void evt01_createEvent_adminGets201() throws Exception {
-        // T-SEC-004: "ADMIN POST /api/events válido → 201"
-        assertThat(statusOf(post("/api/events").header("Authorization", bearer(sofia))
-                .contentType(MediaType.APPLICATION_JSON).content(VALID_EVENT_BODY))).isEqualTo(201);
-    }
-
-    // ------------------------------------------------------------------
-    // EVT-03 — público
-    // ------------------------------------------------------------------
-
-    @Test
-    void evt03_publishedEvents_isPublic() throws Exception {
-        // T-SEC-001: "Anónimo GET /api/events/published → 200"
-        assertThat(statusOf(get("/api/events/published"))).isEqualTo(200);
-    }
-
-    // ------------------------------------------------------------------
-    // ART-01..03 — públicos
-    // ------------------------------------------------------------------
-
-    @Test
-    void art01_artistById_isPublic() throws Exception {
-        // PRD §11 ART-01: "Público". El id 999 no existe: si la ruta fuera protegida, un anónimo
-        // recibiría 401 en vez de 404.
-        assertThat(statusOf(get("/api/artists/999"))).isEqualTo(404);
-    }
-
-    @Test
-    void art02_artistByStageName_isPublic() throws Exception {
-        // PRD §11 ART-02: "Público"
-        assertThat(statusOf(get("/api/artists/by-stage-name").param("stageName", "Nadie"))).isEqualTo(404);
-    }
-
-    @Test
-    void art03_activeArtists_isPublic() throws Exception {
-        // PRD §11 ART-03: "Público"
-        assertThat(statusOf(get("/api/artists/active"))).isEqualTo(200);
-    }
-
-    // ------------------------------------------------------------------
-    // USR-01 — público
-    // ------------------------------------------------------------------
-
-    @Test
-    void usr01_register_isPublic() throws Exception {
-        // PRD §11 USR-01: "Público (rol inicial exclusivamente USER)"
-        String body = """
-                {
-                    "username": "nuevo",
-                    "email": "nuevo@example.com",
-                    "firstName": "Nuevo",
-                    "lastName": "Usuario",
-                    "birthDate": "1995-05-15",
-                    "password": "UnaClaveSegura2026!"
+            case EVT02 -> result.andExpect(jsonPath("$.eventCode").value("MATRIX-PUB"));
+            case EVT03, EVT06 -> result.andExpect(jsonPath("$[0].eventCode").value("MATRIX-PUB"));
+            case EVT04 -> {
+                em.flush(); em.clear();
+                assertThat(events.findByEventCode("MATRIX-DRAFT").orElseThrow().getStatus()).isEqualTo(EventStatus.PUBLISHED);
+            }
+            case EVT05 -> {
+                em.flush(); em.clear();
+                assertThat(events.findByEventCode("MATRIX-DRAFT").orElseThrow().getArtists())
+                        .extracting(Artist::getStageName).containsExactly("Matrix artist");
+            }
+            case USR01 -> {
+                User created = users.findByUsername("newmatrix").orElseThrow();
+                assertThat(roles.findByUserUsername("newmatrix")).extracting(UserRole::getRole).containsExactly(Role.USER);
+                assertThat(credentials.findById(created.getId())).isPresent();
+            }
+            case USR02, USR03 -> result.andExpect(jsonPath("$.username").value(target.getUsername()));
+            case TKT01 -> {
+                em.flush(); em.clear();
+                assertThat(tickets.count()).isEqualTo(6);
+                Ticket purchased = tickets.findAll().stream().filter(t -> t.getTicketCode().startsWith("TCK-"))
+                        .findFirst().orElseThrow();
+                assertThat(purchased.getTicketCode()).matches("TCK-[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}");
+                assertThat(purchased.getUser().getId()).isEqualTo(requester.getId());
+                assertThat(purchased.getStatus()).isEqualTo(TicketStatus.PAID);
+            }
+            case TKT02 -> result.andExpect(jsonPath("$.ticketCode").value("MATRIX-PAID"));
+            case TKT03 -> result.andExpect(jsonPath("$.length()").value(5));
+            case TKT04 -> result.andExpect(jsonPath("$.length()").value(1))
+                    .andExpect(jsonPath("$[0].ticketCode").value("MATRIX-PAID"))
+                    .andExpect(jsonPath("$[0].status").value("PAID"));
+            case TKT05, TKT06 -> {
+                em.flush(); em.clear();
+                TicketStatus state = route == Route.TKT05 ? TicketStatus.CANCELLED : TicketStatus.USED;
+                assertThat(tickets.findByTicketCode("MATRIX-PAID").orElseThrow().getStatus()).isEqualTo(state);
+                if (route == Route.TKT06) {
+                    var afterFirstUse = snapshot();
+                    mvc.perform(patch("/api/tickets/MATRIX-PAID/use").header("Authorization", bearer))
+                            .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isConflict());
+                    assertThat(snapshot()).isEqualTo(afterFirstUse);
                 }
-                """;
-        assertThat(statusOf(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(body)))
-                .isEqualTo(201);
+            }
+        }
     }
 
-    // ------------------------------------------------------------------
-    // USR-02 / USR-03 — autenticado (la propiedad se verifica en OwnershipAntiIdorTest)
-    // ------------------------------------------------------------------
-
-    @Test
-    void usr02_findByEmail_requiresAuthentication() throws Exception {
-        // Anónimo: 401. Autenticado: pasa la capa de seguridad (el 404 es de negocio, el usuario
-        // no existe en este test). La verificación de propiedad se hace en OwnershipAntiIdorTest.
-        assertThat(statusOf(get("/api/users/by-email").param("email", "andrea@example.com")))
-                .isEqualTo(401);
-        assertThat(statusOf(get("/api/users/by-email").param("email", "andrea@example.com")
-                .header("Authorization", bearer(andrea)))).isEqualTo(200);
+    private List<List<java.util.Map<String, Object>>> snapshot() {
+        em.flush(); em.clear();
+        return Stream.of("venues", "artists", "events", "event_artists", "users", "user_profiles",
+                        "user_credentials", "user_roles", "tickets")
+                .map(table -> sql.queryForList("SELECT * FROM " + table + " ORDER BY 1, 2")).toList();
     }
 
-    @Test
-    void usr03_findByUsername_requiresAuthentication() throws Exception {
-        assertThat(statusOf(get("/api/users/by-username").param("username", "andrea")))
-                .isEqualTo(401);
-        assertThat(statusOf(get("/api/users/by-username").param("username", "andrea")
-                .header("Authorization", bearer(andrea)))).isEqualTo(200);
-    }
-
-    // ------------------------------------------------------------------
-    // TKT-01 — autenticado
-    // ------------------------------------------------------------------
-
-    @Test
-    void tkt01_purchase_requiresAuthentication() throws Exception {
-        String body = """
-                {
-                    "userEmail": "andrea@example.com",
-                    "eventCode": "CMF-2026",
-                    "type": "GENERAL"
-                }
-                """;
-        assertThat(statusOf(post("/api/tickets").contentType(MediaType.APPLICATION_JSON).content(body)))
-                .isEqualTo(401);
-        assertThat(statusOf(post("/api/tickets").header("Authorization", bearer(andrea))
-                .contentType(MediaType.APPLICATION_JSON).content(body))).isEqualTo(404);
-    }
-
-    // ------------------------------------------------------------------
-    // TKT-02 / TKT-03 / TKT-05 — autenticado (la propiedad se verifica en OwnershipAntiIdorTest)
-    // ------------------------------------------------------------------
-
-    @Test
-    void tkt02_findByCode_requiresAuthentication() throws Exception {
-        assertThat(statusOf(get("/api/tickets/TCK-0001"))).isEqualTo(401);
-        assertThat(statusOf(get("/api/tickets/TCK-0001").header("Authorization", bearer(andrea))))
-                .isEqualTo(404);
-    }
-
-    @Test
-    void tkt03_byUser_requiresAuthentication() throws Exception {
-        // PRD §14.3 adv. 4: el literal /by-user debe declararse antes del patrón {ticketCode}.
-        // Aquí se verifica que un anónimo no lo alcanza.
-        assertThat(statusOf(get("/api/tickets/by-user").param("email", "andrea@example.com")))
-                .isEqualTo(401);
-        assertThat(statusOf(get("/api/tickets/by-user").param("email", "andrea@example.com")
-                .header("Authorization", bearer(andrea)))).isEqualTo(200);
-    }
-
-    @Test
-    void tkt05_cancel_requiresAuthentication() throws Exception {
-        assertThat(statusOf(patch("/api/tickets/TCK-0001/cancel"))).isEqualTo(401);
-        assertThat(statusOf(patch("/api/tickets/TCK-0001/cancel")
-                .header("Authorization", bearer(andrea)))).isEqualTo(404);
-    }
-
-    // ------------------------------------------------------------------
-    // TKT-04 / TKT-06 — STAFF/ADMIN
-    // ------------------------------------------------------------------
-
-    @Test
-    void tkt04_paidTickets_requiresStaffOrAdmin() throws Exception {
-        // PRD §11 TKT-04: "STAFF/ADMIN"
-        assertThat(statusOf(get("/api/events/CMF-2026/tickets/paid"))).isEqualTo(401);
-        assertThat(statusOf(get("/api/events/CMF-2026/tickets/paid")
-                .header("Authorization", bearer(andrea)))).isEqualTo(403);
-        // STAFF y ADMIN pasan la capa de rol. El 200 es de negocio: la operación no exige que el
-        // evento exista y devuelve la lista vacía cuando no hay tickets PAID.
-        assertThat(statusOf(get("/api/events/CMF-2026/tickets/paid")
-                .header("Authorization", bearer(laura)))).isEqualTo(200);
-        assertThat(statusOf(get("/api/events/CMF-2026/tickets/paid")
-                .header("Authorization", bearer(sofia)))).isEqualTo(200);
-    }
-
-    @Test
-    void tkt06_useTicket_requiresStaffOrAdmin() throws Exception {
-        // PRD §11 TKT-06: "STAFF/ADMIN". T-SEC-012: "USER intenta usar ticket → 403"
-        assertThat(statusOf(patch("/api/tickets/TCK-0001/use"))).isEqualTo(401);
-        assertThat(statusOf(patch("/api/tickets/TCK-0001/use")
-                .header("Authorization", bearer(andrea)))).isEqualTo(403);
-        assertThat(statusOf(patch("/api/tickets/TCK-0001/use")
-                .header("Authorization", bearer(laura)))).isEqualTo(404);
-    }
-
-    // ------------------------------------------------------------------
-    // EVT-04 / EVT-05 — ADMIN
-    // ------------------------------------------------------------------
-
-    @Test
-    void evt04_publish_requiresAdmin() throws Exception {
-        // PRD §11 EVT-04: "ADMIN". T-SEC-014: "ADMIN publica evento → 200"; UC-SEC-08: USER → 403
-        // STAFF no es ADMIN: recibe 403 (PRD §11 es explícito: solo ADMIN).
-        assertThat(statusOf(patch("/api/events/CMF-2026/publish"))).isEqualTo(401);
-        assertThat(statusOf(patch("/api/events/CMF-2026/publish")
-                .header("Authorization", bearer(andrea)))).isEqualTo(403);
-        assertThat(statusOf(patch("/api/events/CMF-2026/publish")
-                .header("Authorization", bearer(laura)))).isEqualTo(403);
-        // ADMIN pasa la capa de rol; el 404 es de negocio (el evento no existe en este test)
-        assertThat(statusOf(patch("/api/events/CMF-2026/publish")
-                .header("Authorization", bearer(sofia)))).isEqualTo(404);
-    }
-
-    @Test
-    void evt05_addArtist_requiresAdmin() throws Exception {
-        // PRD §11 EVT-05: "ADMIN"
-        assertThat(statusOf(post("/api/events/CMF-2026/artists/1"))).isEqualTo(401);
-        assertThat(statusOf(post("/api/events/CMF-2026/artists/1")
-                .header("Authorization", bearer(andrea)))).isEqualTo(403);
-        assertThat(statusOf(post("/api/events/CMF-2026/artists/1")
-                .header("Authorization", bearer(laura)))).isEqualTo(403);
-        assertThat(statusOf(post("/api/events/CMF-2026/artists/1")
-                .header("Authorization", bearer(sofia)))).isEqualTo(404);
-    }
-
-    // ------------------------------------------------------------------
-    // EVT-02 / EVT-06 — públicos con filtrado de borradores (ver DraftVisibilityTest)
-    // ------------------------------------------------------------------
-
-    @Test
-    void evt02_eventByCode_isReachableByAnonymous() throws Exception {
-        // PRD §11 EVT-02: "Público solo si publicado". Un anónimo NO debe recibir 401: la ruta es
-        // alcanzable. El 404 es de negocio (el evento no existe en este test). El filtrado de
-        // borradores se verifica en DraftVisibilityTest (decisión D3).
-        assertThat(statusOf(get("/api/events/CMF-2026"))).isEqualTo(404);
-    }
-
-    @Test
-    void evt06_byArtist_isReachableByAnonymous() throws Exception {
-        // PRD §11 EVT-06: "Público únicamente para eventos publicados". Idem: sin 401 para anónimo.
-        assertThat(statusOf(get("/api/events/by-artist").param("stageName", "Solar Beat")))
-                .isEqualTo(200);
-    }
-
-    // ------------------------------------------------------------------
-    // Utilidades
-    // ------------------------------------------------------------------
-
-    private int statusOf(org.springframework.test.web.servlet.RequestBuilder request)
-            throws Exception {
-        return mockMvc.perform(request).andReturn().getResponse().getStatus();
-    }
-
-    /** Recuento por código de estado, para el reporte de la matriz. */
-    private Map<Integer, Long> countByStatus(List<Integer> statuses) {
-        return statuses.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                        s -> s, java.util.stream.Collectors.counting()));
-    }
-
-    @Test
-    void allTwentyRoutes_wereExercised() {
-        // Guardarra de cobertura: evita que una ruta se quede sin probar cuando se agrega una
-        // nueva operación. Cuenta las rutas de la matriz y las compara con el total del PRD.
-        long total = List.of(
-                "VEN-01", "VEN-02",
-                "EVT-01", "EVT-02", "EVT-03", "EVT-04", "EVT-05", "EVT-06",
-                "ART-01", "ART-02", "ART-03",
-                "USR-01", "USR-02", "USR-03",
-                "TKT-01", "TKT-02", "TKT-03", "TKT-04", "TKT-05", "TKT-06"
-        ).size();
-
-        // PRD §11: "las cinco tablas de controlador suman 20 operaciones"
-        assertThat(total).isEqualTo(20);
-        assertThat(countByStatus(List.of(200, 401, 403, 404))).containsKey(200);
+    private MockHttpServletRequestBuilder request(Route route, User target) {
+        return switch (route) {
+            case VEN01 -> get("/api/venues/MATRIX-VEN");
+            case VEN02 -> get("/api/venues/active");
+            case EVT01 -> post("/api/events").contentType(MediaType.APPLICATION_JSON).content("""
+                    {"eventCode":"MATRIX-NEW","name":"New event","description":"Description",
+                    "category":"MUSIC","eventDate":"%s","minimumAge":0,"venueCode":"MATRIX-VEN"}
+                    """.formatted(LocalDateTime.now().plusDays(60)));
+            case EVT02 -> get("/api/events/MATRIX-PUB");
+            case EVT03 -> get("/api/events/published");
+            case EVT04 -> patch("/api/events/MATRIX-DRAFT/publish");
+            case EVT05 -> post("/api/events/MATRIX-DRAFT/artists/{id}", artist.getId());
+            case EVT06 -> get("/api/events/by-artist").param("stageName", "Matrix artist");
+            case ART01 -> get("/api/artists/{id}", artist.getId());
+            case ART02 -> get("/api/artists/by-stage-name").param("stageName", "Matrix artist");
+            case ART03 -> get("/api/artists/active");
+            case USR01 -> post("/api/users").contentType(MediaType.APPLICATION_JSON).content("""
+                    {"username":"newmatrix","email":"newmatrix@example.com","firstName":"First",
+                    "lastName":"Last","birthDate":"1995-01-01","password":"MatrixOnlyFictitious2026!"}
+                    """);
+            case USR02 -> get("/api/users/by-email").param("email", target.getEmail());
+            case USR03 -> get("/api/users/by-username").param("username", target.getUsername());
+            case TKT01 -> post("/api/tickets").contentType(MediaType.APPLICATION_JSON).content("""
+                    {"userEmail":"%s","eventCode":"MATRIX-PUB","type":"GENERAL"}
+                    """.formatted(target.getEmail()));
+            case TKT02 -> get("/api/tickets/MATRIX-PAID");
+            case TKT03 -> get("/api/tickets/by-user").param("email", target.getEmail());
+            case TKT04 -> get("/api/events/MATRIX-PUB/tickets/paid");
+            case TKT05 -> patch("/api/tickets/MATRIX-PAID/cancel");
+            case TKT06 -> patch("/api/tickets/MATRIX-PAID/use");
+        };
     }
 }

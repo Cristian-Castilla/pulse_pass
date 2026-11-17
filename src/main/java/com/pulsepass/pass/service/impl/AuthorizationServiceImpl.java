@@ -35,7 +35,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     @Override
     public SecurityPrincipal currentPrincipal() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof SecurityPrincipal principal)) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof SecurityPrincipal principal)) {
             throw new AuthenticationException("No authenticated principal");
         }
         return principal;
@@ -73,6 +74,15 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         throw new AccessDeniedException(DENIED_MESSAGE);
     }
 
+    @Override
+    public void requireOwnerOrAdmin(Long ownerId) {
+        SecurityPrincipal principal = currentPrincipal();
+        if (!principal.isActive() || !(hasRole(Role.ADMIN)
+                || (ownerId != null && ownerId.equals(principal.userId())))) {
+            throw new AccessDeniedException(DENIED_MESSAGE);
+        }
+    }
+
     /**
      * Exige que el recurso pertenezca a la identidad actual.
      *
@@ -93,7 +103,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             throw new AccessDeniedException(DENIED_MESSAGE);
         }
 
-        if (ownerId == null || !ownerId.equals(principal.userId())) {
+        if (ownerId == null || !ownerId.equals(principal.userId()) || !hasRole(Role.USER)) {
             throw new AccessDeniedException(DENIED_MESSAGE);
         }
     }
@@ -109,7 +119,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     @Override
     public boolean hasRole(Role role) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getAuthorities() == null) {
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getAuthorities() == null) {
             return false;
         }
 

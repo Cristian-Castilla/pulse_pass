@@ -46,6 +46,42 @@ class UserServiceImplTest {
     private UserServiceImpl userService;
 
     @Test
+    void emailLookupAuthorizesPersistedIdBeforeMapping() {
+        User user = new User("lookup", "lookup@example.com", true);
+        org.springframework.test.util.ReflectionTestUtils.setField(user, "id", 7L);
+        when(userRepository.findByEmailIgnoreCase("LOOKUP@example.com")).thenReturn(Optional.of(user));
+        UserResponse expected = new UserResponse(7L, "lookup", "lookup@example.com", true);
+        when(userMapper.toResponse(user)).thenReturn(expected);
+        assertThat(userService.findByEmail("LOOKUP@example.com")).isSameAs(expected);
+        var order = inOrder(authorizationService, userMapper);
+        order.verify(authorizationService).requireOwnerOrAdmin(7L);
+        order.verify(userMapper).toResponse(user);
+    }
+
+    @Test
+    void usernameLookupAuthorizesPersistedIdBeforeMapping() {
+        User user = new User("lookup", "lookup@example.com", true);
+        org.springframework.test.util.ReflectionTestUtils.setField(user, "id", 7L);
+        when(userRepository.findByUsername("lookup")).thenReturn(Optional.of(user));
+        UserResponse expected = new UserResponse(7L, "lookup", "lookup@example.com", true);
+        when(userMapper.toResponse(user)).thenReturn(expected);
+        assertThat(userService.findByUsername("lookup")).isSameAs(expected);
+        var order = inOrder(authorizationService, userMapper);
+        order.verify(authorizationService).requireOwnerOrAdmin(7L);
+        order.verify(userMapper).toResponse(user);
+    }
+
+    @Test
+    void missingLookupCannotMapOrWriteAnything() {
+        assertThrows(com.pulsepass.pass.exception.ResourceNotFoundException.class,
+                () -> userService.findByEmail("missing@example.com"));
+        assertThrows(com.pulsepass.pass.exception.ResourceNotFoundException.class,
+                () -> userService.findByUsername("missing"));
+        verifyNoInteractions(userMapper, authorizationService, userProfileRepository);
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
     void register_usuarioValido() {
         // ARRANGE
         RegisterUserRequest request = new RegisterUserRequest(

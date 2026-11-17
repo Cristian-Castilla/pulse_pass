@@ -25,9 +25,7 @@ import java.time.LocalDateTime;
  * <p>{@code @MapsId} reutiliza el id de {@code User} como PK de esta tabla, garantizando el 1:1
  * sin una columna adicional.
  *
- * <p>{@code cascade = CascadeType.ALL} es necesario porque la PK es compartida: sin cascada,
- * borrar un {@code User} deja una credencial apuntando a una instancia transient y Hibernate
- * falla con {@code TransientPropertyValueException} antes de evaluar la FK.
+ * <p>La cascada permite persistir/actualizar el usuario, nunca borrarlo al eliminar su credencial.
  */
 @Entity
 @Table(name = "user_credentials")
@@ -36,7 +34,7 @@ public class UserCredential {
     @Id
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @MapsId
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;

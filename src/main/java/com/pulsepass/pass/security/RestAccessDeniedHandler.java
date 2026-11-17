@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 /**
  * Responde 403 cuando una identidad válida intenta una operación que su rol no permite.
@@ -31,6 +34,8 @@ import java.util.Map;
 @Component
 public class RestAccessDeniedHandler implements AccessDeniedHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(RestAccessDeniedHandler.class);
+
     /** Mensaje del PRD §13 para 403. */
     static final String MESSAGE = "No tiene permisos para realizar esta operación";
 
@@ -44,6 +49,8 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(HttpServletRequest request,
                        HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException {
+
+        log.info("security_denied status=403 requestId={}", MDC.get("requestId"));
 
         ErrorResponse body = new ErrorResponse(
                 LocalDateTime.now(),

@@ -1,74 +1,48 @@
 package com.pulsepass.pass;
 
 import com.pulsepass.pass.repository.ArtistRepository;
-import com.pulsepass.pass.repository.EventRepository;
-import com.pulsepass.pass.repository.TicketRepository;
-import com.pulsepass.pass.repository.UserProfileRepository;
-import com.pulsepass.pass.repository.UserRepository;
-import com.pulsepass.pass.repository.VenueRepository;
+import jakarta.persistence.EntityManagerFactory;
+import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Verifica que Flyway aplique correctamente las migraciones V1, V2 y V3
- * desde una base de datos vacía, y que el esquema resultante sea compatible
- * con las entidades de Hibernate en modo validate (ddl-auto=validate).
- *
- * PRD: "Flyway será el único responsable de crear y evolucionar la base de datos"
- * PRD: "Hibernate NO debe crear ni modificar el esquema"
- */
-@SpringBootTest
 class FlywayMigrationTest extends PostgresContainerSupport {
-
-    @Autowired
-    private VenueRepository venueRepository;
-
-    @Autowired
-    private EventRepository eventRepository;
-
-    @Autowired
-    private ArtistRepository artistRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private UserProfileRepository userProfileRepository;
-
-    @Autowired
-    private TicketRepository ticketRepository;
+    @Autowired private ArtistRepository artistRepository;
+    @Autowired private Flyway flyway;
+    @Autowired private JdbcTemplate jdbc;
+    @Autowired private Environment environment;
+    @Autowired private EntityManagerFactory entityManagerFactory;
 
     @Test
     void contextLoadsWithoutSchemaValidationErrors() {
-        // Si Spring context carga correctamente con ddl-auto=validate,
-        // significa que el esquema de Flyway V1/V2/V3 coincide con las entidades JPA.
-        assertThat(venueRepository).isNotNull();
-        assertThat(eventRepository).isNotNull();
-        assertThat(artistRepository).isNotNull();
-        assertThat(userRepository).isNotNull();
-        assertThat(userProfileRepository).isNotNull();
-        assertThat(ticketRepository).isNotNull();
+        assertThat(environment.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
+        assertThat(entityManagerFactory.getProperties().get("hibernate.hbm2ddl.auto")).isEqualTo("validate");
+        assertThat(environment.getProperty("spring.flyway.enabled", Boolean.class)).isTrue();
+        assertThat(flyway.info().applied()).extracting(i -> i.getVersion().getVersion())
+                .containsExactly("1", "2", "3", "4", "5");
+        assertThat(flyway.validateWithResult().validationSuccessful).isTrue();
+        assertThat(flyway.migrate().migrationsExecuted).isZero();
+        assertThat(flyway.info().pending()).isEmpty();
     }
 
     @Test
     void shouldApplyV2SeedInitialArtists() {
-        // V2 debe insertar los 5 artistas iniciales.
-        assertThat(artistRepository.count()).isEqualTo(5);
-
-        assertThat(artistRepository.findByStageName("Solar Beat")).isPresent();
-        assertThat(artistRepository.findByStageName("Neon Waves")).isPresent();
-        assertThat(artistRepository.findByStageName("Caribbean Sound")).isPresent();
-        assertThat(artistRepository.findByStageName("Ocean Drive")).isPresent();
-        assertThat(artistRepository.findByStageName("Digital Pulse")).isPresent();
+        assertThat(artistRepository.findAll()).hasSize(5).extracting(a -> a.getStageName())
+                .contains("Solar Beat", "Neon Waves", "Caribbean Sound", "Ocean Drive", "Digital Pulse");
     }
 
     @Test
     void shouldApplyV3AddStreamingUrlColumnToEvents() {
-        // V3 agrega streaming_url VARCHAR(500) nullable a events.
-        // Hibernate valida que la columna existe al cargar el contexto.
-        // Si no existiera, ddl-auto=validate fallaría en el arranque.
+        var column = jdbc.queryForMap("SELECT data_type,character_maximum_length,is_nullable FROM information_schema.columns "
+                + "WHERE table_schema=current_schema() AND table_name='events' AND column_name='streaming_url'");
+        assertThat(column).containsEntry("data_type", "character varying")
+                .containsEntry("character_maximum_length", 500).containsEntry("is_nullable", "YES");
+        assertThat(jdbc.queryForObject("SELECT data_type FROM information_schema.columns "
+                + "WHERE table_schema=current_schema() AND table_name='events' AND column_name='event_date'", String.class))
+                .isEqualTo("timestamp without time zone");
     }
 }

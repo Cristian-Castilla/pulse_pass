@@ -2,7 +2,7 @@ package com.pulsepass.pass;
 
 import com.pulsepass.pass.domain.Venue;
 import com.pulsepass.pass.repository.VenueRepository;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -16,15 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * PRD: "code UNIQUE", "code NOT NULL", "capacity > 0"
  * Query Method: findByCode
  */
+@org.springframework.transaction.annotation.Transactional
 class VenueRepositoryTest extends PostgresContainerSupport {
 
     @Autowired
     private VenueRepository venueRepository;
-
-    @BeforeEach
-    void cleanDatabase() {
-        venueRepository.deleteAllInBatch();
-    }
 
     @Test
     void shouldSaveAndRetrieveVenueById() {

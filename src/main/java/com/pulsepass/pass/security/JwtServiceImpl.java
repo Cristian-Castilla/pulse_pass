@@ -5,6 +5,7 @@ import com.pulsepass.pass.exception.AuthenticationException;
 import com.pulsepass.pass.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -47,8 +48,7 @@ import java.util.UUID;
  * nuevo". Se usan las APIs de la 0.13.x ({@code signWith}, {@code parseSignedClaims}).
  *
  * <p>PRD §12.2: "Comparar algoritmo esperado y verificar criptográficamente firma antes de confiar
- * en claims". {@code verifyWith(key)} fuerza HS256 porque la clave es HMAC: con una clave HMAC no es
- * posible firmar con {@code alg=none} ni con un algoritmo asimétrico, y JJWT lo rechaza.
+ * en claims". La firma HMAC no restringe por sí sola HS384/HS512: se compara el header verificado.
  */
 @Service
 public class JwtServiceImpl implements JwtService {
@@ -70,10 +70,13 @@ public class JwtServiceImpl implements JwtService {
 
     private final JwtProperties properties;
     private final SecretKey key;
+    private final JwtParser parser;
 
     public JwtServiceImpl(JwtProperties properties) {
+        properties.validate();
         this.properties = properties;
         this.key = resolveKey(properties.getSecretBase64());
+        this.parser = Jwts.parser().verifyWith(key).requireIssuer(properties.getIssuer()).build();
     }
 
     /**
@@ -88,6 +91,9 @@ public class JwtServiceImpl implements JwtService {
      */
     @Override
     public AuthResponse issueToken(Long userId) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("User id must be positive");
+        }
         Instant now = Instant.now();
         Instant expiresAt = now.plus(properties.getAccessTokenTtl());
 
@@ -124,19 +130,28 @@ public class JwtServiceImpl implements JwtService {
         }
 
         try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(key)
-                    .requireIssuer(properties.getIssuer())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-
+            var signed = parser.parseSignedClaims(token);
+            Claims claims = signed.getPayload();
+            Instant now = Instant.now();
+            Date issuedAt = claims.getIssuedAt();
+            Date expiration = claims.getExpiration();
             String subject = claims.getSubject();
-            if (subject == null || subject.isBlank()) {
+            // Only iat tolerates 30s of clock drift; expiration has no grace period.
+            if (!EXPECTED_ALGORITHM.equals(signed.getHeader().getAlgorithm())
+                    || issuedAt == null || expiration == null
+                    || !expiration.toInstant().isAfter(now)
+                    || !expiration.after(issuedAt)
+                    || issuedAt.toInstant().isAfter(now.plusSeconds(30))
+                    || claims.getId() == null || claims.getId().isBlank()
+                    || subject == null || subject.isBlank()) {
                 throw new AuthenticationException("Invalid credentials");
             }
 
-            return Long.valueOf(subject);
+            Long userId = Long.valueOf(subject);
+            if (userId <= 0) {
+                throw new AuthenticationException("Invalid credentials");
+            }
+            return userId;
         } catch (AuthenticationException ex) {
             throw ex;
         } catch (JwtException | IllegalArgumentException ex) {

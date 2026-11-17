@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * PRD: "stageName UNIQUE", "stageName NOT NULL"
  * Query Method: findByStageName
  */
+@org.springframework.transaction.annotation.Transactional
 class ArtistRepositoryTest extends PostgresContainerSupport {
 
     @Autowired
@@ -40,7 +41,6 @@ class ArtistRepositoryTest extends PostgresContainerSupport {
         assertThrows(DataIntegrityViolationException.class,
                 () -> artistRepository.saveAndFlush(duplicate));
 
-        // Limpiar: eliminar el artista creado
-        artistRepository.delete(original);
+
     }
 }

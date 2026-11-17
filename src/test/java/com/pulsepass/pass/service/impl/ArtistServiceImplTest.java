@@ -31,6 +31,20 @@ class ArtistServiceImplTest {
     private ArtistServiceImpl artistService;
 
     @Test
+    void missingStageNameDoesNotInvokeMapper() {
+        assertThrows(ResourceNotFoundException.class, () -> artistService.findByStageName("missing"));
+        verify(artistRepository).findByStageName("missing");
+        verifyNoInteractions(artistMapper);
+    }
+
+    @Test
+    void emptyActiveListDoesNotInventArtists() {
+        when(artistRepository.findByActiveTrueOrderByStageNameAsc()).thenReturn(List.of());
+        assertThat(artistService.findActiveArtists()).isEmpty();
+        verifyNoInteractions(artistMapper);
+    }
+
+    @Test
     void findById_retornaDTO() {
         // ARRANGE
         Artist artist = new Artist("Solar Beat", "Colombia", "Electrónica", true);

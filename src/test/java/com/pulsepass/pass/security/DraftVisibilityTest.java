@@ -73,6 +73,22 @@ class DraftVisibilityTest extends PostgresContainerSupport {
 
     private Venue venue;
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.EnumSource(value = EventStatus.class,
+            mode = org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE, names = "PUBLISHED")
+    void allNonPublishedStatesAreHiddenFromAnonymousAndVisibleToStaff(EventStatus state) throws Exception {
+        Artist artist = artistRepository.findByStageName("Solar Beat").orElseThrow();
+        eventRepository.saveAndFlush(event("VISIBILITY-" + state, state, artist));
+        mockMvc.perform(get("/api/events/VISIBILITY-" + state)).andExpect(status().isNotFound());
+        persistUser("visibilitystaff", "visibilitystaff@example.com", Role.STAFF);
+        mockMvc.perform(get("/api/events/VISIBILITY-" + state)
+                .header("Authorization", bearer("visibilitystaff")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value(state.name()));
+        mockMvc.perform(get("/api/events/by-artist").param("stageName", "Solar Beat"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].status").value("PUBLISHED"));
+    }
+
     @BeforeEach
     void setUp() {
         userRoleRepository.deleteAllInBatch();

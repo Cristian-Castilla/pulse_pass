@@ -27,6 +27,7 @@ class UserProfileTest extends PostgresContainerSupport {
 
     @Autowired private UserRepository userRepository;
     @Autowired private UserProfileRepository userProfileRepository;
+    @Autowired private jakarta.persistence.EntityManager entityManager;
 
     private User savedUser;
 
@@ -44,8 +45,17 @@ class UserProfileTest extends PostgresContainerSupport {
                 LocalDate.of(1990, 1, 1), savedUser);
         userProfileRepository.saveAndFlush(profile);
 
-        // Verificar que el perfil fue persistido
-        assertThat(userProfileRepository.findAll()).hasSize(1);
+        entityManager.clear();
+        User reloaded = userRepository.findById(savedUser.getId()).orElseThrow();
+        UserProfile persisted = reloaded.getProfile();
+        assertThat(persisted.getId()).isEqualTo(profile.getId());
+        assertThat(persisted.getFirstName()).isEqualTo("Test");
+        assertThat(persisted.getLastName()).isEqualTo("User");
+        assertThat(persisted.getPhone()).isEqualTo("123456789");
+        assertThat(persisted.getCity()).isEqualTo("Bogotá");
+        assertThat(persisted.getBirthDate()).isEqualTo(LocalDate.of(1990, 1, 1));
+        assertThat(persisted.getUser().getId()).isEqualTo(reloaded.getId());
+        assertThat(persisted.getUser().getEmail()).isEqualTo("test@example.com");
     }
 
     @Test

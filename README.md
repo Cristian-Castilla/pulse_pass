@@ -2,7 +2,7 @@
 
 Plataforma de eventos, artistas y entradas para descubrir conciertos, festivales, conferencias y eventos culturales.
 
-Caso de estudio académico para capa de persistencia.
+Caso de estudio académico de persistencia, servicios, controladores y seguridad.
 
 ## Stack tecnológico
 
@@ -51,6 +51,8 @@ Event 1 ---- N Ticket
 | V1 - create_schema.sql              | Crea todas las tablas con PK, FK, UNIQUE, CHECK e índices              |
 | V2 - insert_initial_artists.sql     | Inserta 5 artistas de prueba (Solar Beat, Neon Waves, Caribbean Sound, Ocean Drive, Digital Pulse) |
 | V3 - add_streaming_url_to_event.sql | Agrega streaming_url VARCHAR(500) nullable a events sin modificar V1   |
+| V4 - security_credentials_roles.sql | Credenciales/roles y event_date TIMESTAMP sin reescribir V1 |
+| V5 - align_user_role_primary_key.sql | Alinea la PK de roles a (user_id, role), conservando sus datos |
 
 ## Consultas implementadas
 
@@ -146,8 +148,9 @@ cp .env.example .env.properties
 | `PULSEPASS_JWT_ISSUER` | No (default `pulsepass-api`) | Emisor del token (`iss`) |
 | `PULSEPASS_JWT_SECRET_BASE64` | **Sí** | Clave HMAC en Base64 (mínimo 32 bytes) |
 | `PULSEPASS_JWT_ACCESS_TOKEN_TTL` | No (default `PT15M`) | Vida del token (ISO-8601 Duration) |
+| `PULSEPASS_CORS_ALLOWED_ORIGINS` | No (default vacío: ningún origen web autorizado) | Orígenes exactos separados por comas; sin `*`, rutas ni credenciales |
 
-**El nombre del archivo importa.** `application.yml` importa `optional:file:.env.properties`, y
+**El nombre del archivo importa.** Fuera del perfil `test`, `application.yml` importa `optional:file:.env.properties`, y
 Spring Boot elige el loader de propiedades según la **extensión** del archivo. Un archivo llamado
 `.env` (sin extensión conocida) no se carga: las variables quedan sin resolver y la aplicación
 falla al arrancar con `pulsepass.security.jwt.secret-base64 is required`.
@@ -155,8 +158,12 @@ falla al arrancar con `pulsepass.security.jwt.secret-base64 is required`.
 Generar una clave:
 
 ```bash
-# PowerShell
-[Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Max 256 }))
+# PowerShell (generador criptográfico, compatible con Windows PowerShell)
+$bytes = New-Object byte[] 48
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
+[Convert]::ToBase64String($bytes)
+$rng.Dispose()
 
 # bash
 head -c 48 /dev/urandom | base64
@@ -169,7 +176,7 @@ head -c 48 /dev/urandom | base64
 | Rol | Qué puede hacer |
 |---|---|
 | `USER` | Comprar entradas, consultar sus propios datos y tickets, cancelar sus propios tickets |
-| `STAFF` | Operar eventos y controlar el ingreso (marcar tickets como usados) |
+| `STAFF` | Consultar borradores y tickets operativos, listar PAID por evento y marcar tickets como usados; no administrar eventos ni cancelar tickets ajenos |
 | `ADMIN` | Administrar eventos, asociar artistas y consultar datos operativos sensibles |
 
 El rol inicial del registro público es **siempre** `USER`. No existe registro público con roles
@@ -283,14 +290,19 @@ ni quién es su dueño.
 | `DraftVisibilityTest` | Filtrado de eventos no publicados (EVT-02, EVT-06) |
 
 Los tests **no deshabilitan los filtros** (`@AutoConfigureMockMvc(addFilters = false)`
-invalidaría el propósito de probar seguridad). Autentican con un Bearer real emitido por
-`AuthService.login(...)`, que ejercita el filtro, la validación de firma y la carga de identidad.
+invalidaría el propósito de probar seguridad). Las pruebas integradas usan Bearer real y PostgreSQL;
+los cinco `*ControllerSliceTest` usan `@WebMvcTest`, `@MockitoBean` e identidad de prueba para aislar
+el contrato HTTP, verificar las llamadas al Service y probar que una entrada rechazada no lo invoca.
+`application-test.yml` aporta exclusivamente configuración ficticia y hereda persistencia del YAML
+principal. El perfil `test` no importa el archivo local `.env.properties`; `@ServiceConnection`
+aporta la base efímera y Hibernate debe mantener `ddl-auto=validate`.
 
 ## Migraciones de la Fase 4
 
 | Migración | Objetivo |
 |---|---|
-| `V4__security_credentials_roles.sql` | Tablas `user_credentials` (1:1 con `users`) y `user_roles` (rol restringido, PK compuesta por `UNIQUE(user_id, role)`), más el `ALTER` de `event_date` a `TIMESTAMP` |
+| `V4__security_credentials_roles.sql` | Credenciales 1:1, roles restringidos con PK técnica y UNIQUE(user_id, role), y event_date TIMESTAMP |
+| `V5__align_user_role_primary_key.sql` | Sustituye la PK técnica de roles por PK compuesta (user_id, role), sin cambiar V4 aplicada ni perder asignaciones |
 
 `V1` declaraba `event_date DATE` y no se modificó: Flyway nunca reutiliza una versión aplicada. El
 cambio de tipo se hizo con el `ALTER` de V4.
@@ -311,8 +323,12 @@ cambio de tipo se hizo con el `ALTER` de V4.
 
 ## Limitaciones del MVP
 
-- **STAFF global en tickets.** El dominio no modela asignación de personal a eventos, así que STAFF
-  opera sobre cualquier ticket. Debe restringirse en producción.
+El procedimiento de provisión privilegiada, activación de usuarios legados, CORS, request ID y el
+gate HTTPS de despliegue se documentan en [operación segura](docs/operacion-segura.md).
+
+- **STAFF global para inspección/ingreso.** El dominio no modela asignación de personal a eventos,
+  así que puede inspeccionar tickets y marcar PAID como USED en cualquier evento. Esto no le permite
+  leer datos personales ajenos, listar tickets por otro usuario ni cancelarlos.
 - **Sin revocación individual.** Un token robado sigue válido hasta su vencimiento (15 minutos). No
   hay denylist de `jti`.
 - **Sin límite de intentos de login** ni rotación automática de claves. Documentados como brechas,

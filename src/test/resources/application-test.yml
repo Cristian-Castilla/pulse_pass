@@ -1,0 +1,13 @@
+# Test-only key; no local .env.properties is imported under this profile.
+pulsepass:
+  security:
+    jwt:
+      issuer: pulsepass-api
+      secret-base64: "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWYwMTIzNDU2Nzg5YWJjZGVm"
+      access-token-ttl: PT15M
+    cors:
+      allowed-origins:
+        - https://client.pulsepass.test
+spring:
+  jpa:
+    show-sql: false
