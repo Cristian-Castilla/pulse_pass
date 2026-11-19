@@ -1,0 +1,1425 @@
+{
+  "info": {
+    "_collection_link": "https://go.postman.co/collection/60287497-a4152a36-0501-42ae-b1f9-ec3fa5ea7983?source=collection_link",
+    "_exporter_id": "60287497",
+    "_postman_id": "a4152a36-0501-42ae-b1f9-ec3fa5ea7983",
+    "name": "PulsePass - E2E Manual",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "item": [],
+      "name": "00 Preparación / conectividad"
+    },
+    {
+      "item": [
+        {
+          "name": "E2E-VEN-01 Venue por código",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "venues",
+                "{{venueActiveCode}}"
+              ],
+              "raw": "{{baseUrl}}/api/venues/{{venueActiveCode}}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E2E-VEN-02 Venues activos",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "venues",
+                "active"
+              ],
+              "raw": "{{baseUrl}}/api/venues/active"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E2E-VEN-01b Venue inexistente",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "venues",
+                "NO-EXISTE"
+              ],
+              "raw": "{{baseUrl}}/api/venues/NO-EXISTE"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/api/venues/active",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "path": [
+                "api",
+                "venues",
+                "active"
+              ],
+              "raw": "/api/venues/active"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-BIZ-001",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "venues",
+                "{{venueActiveCode}}"
+              ],
+              "raw": "{{baseUrl}}/api/venues/{{venueActiveCode}}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-BIZ-003",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{adminToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n  \"eventCode\": \"EVT-R1-001\",\r\n  \"name\": \"Concierto de Prueba E2E\",\r\n  \"description\": \"Evento creado para validar el flujo de negocio.\",\r\n  \"category\": \"MUSIC\",\r\n  \"eventDate\": \"2026-12-15T20:00:00\",\r\n  \"minimumAge\": 18,\r\n  \"venueCode\": \"{{venueActiveCode}}\"\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events"
+              ],
+              "raw": "{{baseUrl}}/api/events"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-BIZ-005",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{adminToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "EVT-R1-001",
+                "artists",
+                "{{artistId}}"
+              ],
+              "raw": "{{baseUrl}}/api/events/EVT-R1-001/artists/{{artistId}}"
+            }
+          },
+          "response": []
+        }
+      ],
+      "name": "01 Venues"
+    },
+    {
+      "item": [
+        {
+          "name": "E2E-ART-03 Artistas activos",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "artists",
+                "active"
+              ],
+              "raw": "{{baseUrl}}/api/artists/active"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E2E-ART-01 Artista por ID",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "artists",
+                "{{artistId}}"
+              ],
+              "raw": "{{baseUrl}}/api/artists/{{artistId}}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E2E-ART-02 Artista por nombre",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "artists",
+                "by-stage-name"
+              ],
+              "query": [
+                {
+                  "key": "stageName",
+                  "value": "{{artistStageName}}"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/artists/by-stage-name?stageName={{artistStageName}}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E2E-ART-01b Artista inexistente",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "artists",
+                "999999"
+              ],
+              "raw": "{{baseUrl}}/api/artists/999999"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-BIZ-002",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "artists",
+                "active"
+              ],
+              "raw": "{{baseUrl}}/api/artists/active"
+            }
+          },
+          "response": []
+        }
+      ],
+      "name": "02 Artists"
+    },
+    {
+      "item": [
+        {
+          "name": "TC-AUTH-001 Registro UserA",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n    \"username\": \"{{userAUsername}}\",\r\n    \"email\": \"{{userAEmail}}\",\r\n    \"firstName\": \"Cristian\",\r\n    \"lastName\": \"Castilla\",\r\n    \"birthDate\": \"2006-07-28\",\r\n    \"password\": \"{{UserAPassword}}\"\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
+              "raw": "{{baseUrl}}/api/users"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-002 Login con username",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n    \"identifier\": \"{{userAUsername}}\",\r\n    \"password\": \"{{UserAPassword}}\"\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "raw": "{{baseUrl}}/api/auth/login"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-003 Login con email",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n    \"identifier\": \"{{userAEmail}}\",\r\n    \"password\": \"{{UserAPassword}}\"\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "raw": "{{baseUrl}}/api/auth/login"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-004 Credenciales incorrectas",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n  \"identifier\": \"{{adminIdentifier}}\",\r\n  \"password\": \"ClaveIncorrecta123!\"\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "raw": "{{baseUrl}}/api/auth/login"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-005 Login identificador inexistente",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n    \"identifier\": \"NO-EXISTE\",\r\n    \"password\": \"Cualquiera\"\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "raw": "{{baseUrl}}/api/auth/login"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-006 Consultar /api/auth/me con token de USER_A",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{UserAToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ],
+              "raw": "{{baseUrl}}/api/auth/me"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-007 Ruta protegida sin header",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ],
+              "raw": "{{baseUrl}}/api/auth/me"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-008 {{bearer_token_1clj}} o malformado",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "abc.def.ghi"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ],
+              "raw": "{{baseUrl}}/api/auth/me"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-09 JWT alterado",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{json_web_token_0rrx}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ],
+              "raw": "{{baseUrl}}/api/auth/me"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-012 Token entregado por query string",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{UserAToken}}"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/auth/me?token={{UserAToken}}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-013 Usuario inactivo con token previo",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n    \"identifier\": \"e2e_inactive\",\r\n    \"password\": \"Inactive_123\"\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "raw": "{{baseUrl}}/api/auth/login"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-014 Token de USER para endpoint ADMIN",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{UserAToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events"
+              ],
+              "raw": "{{baseUrl}}/api/events"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-015 JWT inválido en endpoint público",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{auth_secret_17re}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "venues",
+                "{{venueActiveCode}}"
+              ],
+              "raw": "{{baseUrl}}/api/venues/{{venueActiveCode}}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-01b User B registrado",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n    \"username\": \"{{userBUsername}}\",\r\n    \"email\": \"{{userBEmail}}\",\r\n    \"firstName\": \"UserB\",\r\n    \"lastName\": \"E2E\",\r\n    \"birthDate\": \"1999-01-01\",\r\n    \"password\": \"{{UserBPassword}}\"\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
+              "raw": "{{baseUrl}}/api/users"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-AUTH-02b UserB login con username",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n    \"identifier\": \"{{userBUsername}}\",\r\n    \"password\": \"{{UserBPassword}}\"\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "raw": "{{baseUrl}}/api/auth/login"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n    \"identifier\": \"e2e_admin\",\r\n    \"password\": \"Admin_psw123\"\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "raw": "{{baseUrl}}/api/auth/login"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n    \"identifier\": \"e2e_staff\",\r\n    \"password\": \"Staff_psw123\"\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ],
+              "raw": "{{baseUrl}}/api/auth/login"
+            }
+          },
+          "response": []
+        }
+      ],
+      "name": "03 Auth / usuarios"
+    },
+    {
+      "item": [
+        {
+          "name": "TC-SEC-006",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{UserBToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "by-email"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "{{userAEmail}}"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/users/by-email?email={{userAEmail}}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-SEC-007",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{userBToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "by-username"
+              ],
+              "query": [
+                {
+                  "key": "username",
+                  "value": "{{userAUsername}}"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/users/by-username?username={{userAUsername}}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-BIZ-009",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{staffToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "EVT-R1-001",
+                "tickets",
+                "paid"
+              ],
+              "raw": "{{baseUrl}}/api/events/EVT-R1-001/tickets/paid"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-BIZ-010",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        }
+      ],
+      "name": "04 Usuarios / consulta y propiedad"
+    },
+    {
+      "item": [
+        {
+          "name": "TC-BIZ-004",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{adminToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "PATCH",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "EVT-R1-001",
+                "publish"
+              ],
+              "raw": "{{baseUrl}}/api/events/EVT-R1-001/publish"
+            }
+          },
+          "response": []
+        }
+      ],
+      "name": "05 Events"
+    },
+    {
+      "item": [
+        {
+          "name": "TIC-BIZ-007",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{UserAToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n  \"userEmail\": \"{{userAEmail}}\",\r\n  \"eventCode\": \"EVT-R1-001\",\r\n  \"type\": \"GENERAL\"\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ],
+              "raw": "{{baseUrl}}/api/tickets"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TIC-BIZ-008",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{userBToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketCode}}"
+              ],
+              "raw": "{{baseUrl}}/api/tickets/{{ticketCode}}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-BIZ-012",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-BIZ-013",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-BIZ-014",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-BIZ-015",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        }
+      ],
+      "name": "06 Tickets"
+    },
+    {
+      "item": [
+        {
+          "name": "TC-SEC-001",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": ""
+                }
+              ],
+              "type": "bearer"
+            },
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n\"eventCode\": \"E2E-EVENT-01\",\r\n\"name\": \"PulsePass E2E {{runId}}\",\r\n\"description\": \"Evento de prueba manual\",\r\n\"category\": \"MUSIC\",\r\n\"eventDate\": \"2026-12-31\",\r\n\"minimumAge\": 20,\r\n\"venueCode\":{{venueActiveCode}}\r\n}"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events"
+              ],
+              "raw": "{{baseUrl}}/api/events"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-SEC-002",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{json_web_token_1c7u}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\r\n  \"eventCode\": \"EVT-R1-001\",\r\n  \"name\": \"Concierto de Prueba E2E\",\r\n  \"description\": \"Evento creado para validar la seguridad del endpoint.\",\r\n  \"category\": \"MUSIC\",\r\n  \"eventDate\": \"2026-12-15\",\r\n  \"minimumAge\": 18,\r\n  \"venueCode\": \"{{venueActiveCode}}\"\r\n}\r\n"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events"
+              ],
+              "raw": "{{baseUrl}}/api/events"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-SEC-003",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{userBToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "EVT-R1-001",
+                "artists",
+                "{{artistId}}"
+              ],
+              "raw": "{{baseUrl}}/api/events/EVT-R1-001/artists/{{artistId}}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-SEC-004",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "CUALQUIER-CODG-FALSO"
+              ],
+              "raw": "{{baseUrl}}/api/events/CUALQUIER-CODG-FALSO"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-SEC-008",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{UserAToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\"userEmail\": \"{{userBEmail}}\", \"eventCode\": \"EVT-R1-001\", \"ticketType\": \"GENERAL\"\r\n}\r\n"
+            },
+            "header": [],
+            "method": "POST",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ],
+              "raw": "{{baseUrl}}/api/tickets"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-SEC-009",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{userBToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "TKT-FALSO"
+              ],
+              "raw": "{{baseUrl}}/api/tickets/TKT-FALSO"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{userBToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "by-user"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "{{userAEmail}}"
+                }
+              ],
+              "raw": "{{baseUrl}}/api/tickets/by-user?email={{userAEmail}}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-SEC-011",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{userBToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "PATCH",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "TKT-FALSO",
+                "cancel"
+              ],
+              "raw": "{{baseUrl}}/api/tickets/TKT-FALSO/cancel"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-SEC-012",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{userBToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "PATCH",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "TKT-FALSO",
+                "use"
+              ],
+              "raw": "{{baseUrl}}/api/tickets/TKT-FALSO/use"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-SEC-013",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{UserAToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "EVT-R1-001",
+                "tickets",
+                "paid"
+              ],
+              "raw": "{{baseUrl}}/api/events/EVT-R1-001/tickets/paid"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-SEC-014",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{staffToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "UN-CODIGO-QUE-NO-EXISTE"
+              ],
+              "raw": "{{baseUrl}}/api/events/UN-CODIGO-QUE-NO-EXISTE"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-SEC-015",
+          "request": {
+            "auth": {
+              "bearer": [
+                {
+                  "key": "token",
+                  "type": "string",
+                  "value": "{{adminToken}}"
+                }
+              ],
+              "type": "bearer"
+            },
+            "header": [],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "UN-CODIGO-QUE-NO-EXISTE"
+              ],
+              "raw": "{{baseUrl}}/api/events/UN-CODIGO-QUE-NO-EXISTE"
+            }
+          },
+          "response": []
+        }
+      ],
+      "name": "07 Seguridad / escenarios negativos"
+    },
+    {
+      "item": [],
+      "name": "08 Validaciones y errores HTTP"
+    },
+    {
+      "item": [],
+      "name": "09 Flujos de negocio"
+    }
+  ],
+  "variable": [
+    {
+      "key": "bearer_token_1clj",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_1c7u",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0rrx",
+      "secret": true
+    }
+  ]
+}
