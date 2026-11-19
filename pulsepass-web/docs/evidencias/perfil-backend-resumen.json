@@ -1,0 +1,91 @@
+{
+  "alcance": "9 clases focalizadas, sin PostgreSQL ni Docker; no es suite backend completa",
+  "total": {
+    "tests": 108,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "clases": [
+    {
+      "clase": "com.pulsepass.pass.controller.TicketControllerSliceTest",
+      "timestamp": null,
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "clase": "com.pulsepass.pass.controller.UserControllerSliceTest",
+      "timestamp": null,
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "clase": "com.pulsepass.pass.mapper.TicketMapperTest",
+      "timestamp": null,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "clase": "com.pulsepass.pass.mapper.UserMapperTest",
+      "timestamp": null,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "clase": "com.pulsepass.pass.service.impl.AuthorizationServiceImplTest",
+      "timestamp": null,
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "clase": "com.pulsepass.pass.service.impl.AuthServiceImplTest",
+      "timestamp": null,
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "clase": "com.pulsepass.pass.service.impl.TicketServiceImplTest",
+      "timestamp": null,
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "clase": "com.pulsepass.pass.service.impl.TicketServiceRulesTest",
+      "timestamp": null,
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "clase": "com.pulsepass.pass.service.impl.UserServiceImplTest",
+      "timestamp": null,
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "frontend": {
+    "tests": 101,
+    "passed": 101,
+    "failed": 0,
+    "pending": 0,
+    "archivos": 20,
+    "sha256_fuentes": "d32c66b013913cab5cdfd965fc51b2822c54c82ce999e978780b8c8af0267a1f"
+  }
+}

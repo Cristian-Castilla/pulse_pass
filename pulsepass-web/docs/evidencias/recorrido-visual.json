@@ -1,0 +1,1580 @@
+{
+  "tipo": "Inspección temporal local con API simulada, no integración backend",
+  "casos": 120,
+  "rutas": 20,
+  "anchos": [
+    360,
+    390,
+    1280
+  ],
+  "temas": [
+    "claro",
+    "oscuro"
+  ],
+  "axe_ejecuciones": 40,
+  "axe_violaciones": 0,
+  "desbordamientos": 0,
+  "errores_js": 0,
+  "resultados": [
+    {
+      "ruta": "/",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Descubre los mejores eventos"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": "inicio_1280_claro.png"
+    },
+    {
+      "ruta": "/eventos",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Cartelera"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/eventos/CMF-2026",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Caribbean Music Fest 2026"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/artistas",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Artistas"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/artistas/1",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Solar Beat"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/sedes",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Sedes"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/sedes/VEN-SMR-01",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Marina Convention Center"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/login",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Inicia sesión"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": "login_1280_claro.png"
+    },
+    {
+      "ruta": "/registro",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Crea tu cuenta"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/cuenta",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Mi cuenta"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/mis-tickets",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Mis tickets"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/mis-tickets/TKT-8F2A1C",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Caribbean Music Fest 2026"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/compra/confirmacion/TKT-8F2A1C",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "¡Compra realizada con éxito!"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/staff/validacion",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Validación de ingreso"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/staff/eventos/CMF-2026/tickets",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Tickets pagados · CMF-2026"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": "staff_eventos_CMF-2026_tickets_1280_claro.png"
+    },
+    {
+      "ruta": "/admin/eventos",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Administración de eventos"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos/nuevo",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Nuevo evento"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos/CMF-2026",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Caribbean Music Fest 2026 · CMF-2026"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/403",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "403"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/ruta-no-existente",
+      "tema": "claro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "404"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Descubre los mejores eventos"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/eventos",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Cartelera"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": "eventos_1280_oscuro.png"
+    },
+    {
+      "ruta": "/eventos/CMF-2026",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Caribbean Music Fest 2026"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/artistas",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Artistas"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/artistas/1",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Solar Beat"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/sedes",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Sedes"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/sedes/VEN-SMR-01",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Marina Convention Center"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/login",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Inicia sesión"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/registro",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Crea tu cuenta"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/cuenta",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Mi cuenta"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/mis-tickets",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Mis tickets"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/mis-tickets/TKT-8F2A1C",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Caribbean Music Fest 2026"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/compra/confirmacion/TKT-8F2A1C",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "¡Compra realizada con éxito!"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/staff/validacion",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Validación de ingreso"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/staff/eventos/CMF-2026/tickets",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Tickets pagados · CMF-2026"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Administración de eventos"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos/nuevo",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Nuevo evento"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos/CMF-2026",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "Caribbean Music Fest 2026 · CMF-2026"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/403",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "403"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/ruta-no-existente",
+      "tema": "oscuro",
+      "ancho": 1280,
+      "contenido": 1280,
+      "h1": [
+        "404"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Descubre los mejores eventos"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/eventos",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Cartelera"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/eventos/CMF-2026",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Caribbean Music Fest 2026"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": "eventos_CMF-2026_360_claro.png"
+    },
+    {
+      "ruta": "/artistas",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Artistas"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/artistas/1",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Solar Beat"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/sedes",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Sedes"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/sedes/VEN-SMR-01",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Marina Convention Center"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/login",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Inicia sesión"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/registro",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Crea tu cuenta"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/cuenta",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Mi cuenta"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/mis-tickets",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Mis tickets"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/mis-tickets/TKT-8F2A1C",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Caribbean Music Fest 2026"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/compra/confirmacion/TKT-8F2A1C",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "¡Compra realizada con éxito!"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/staff/validacion",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Validación de ingreso"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/staff/eventos/CMF-2026/tickets",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Tickets pagados · CMF-2026"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Administración de eventos"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos/nuevo",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Nuevo evento"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos/CMF-2026",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Caribbean Music Fest 2026 · CMF-2026"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/403",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "403"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/ruta-no-existente",
+      "tema": "claro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "404"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Descubre los mejores eventos"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/eventos",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Cartelera"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/eventos/CMF-2026",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Caribbean Music Fest 2026"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/artistas",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Artistas"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/artistas/1",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Solar Beat"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/sedes",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Sedes"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/sedes/VEN-SMR-01",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Marina Convention Center"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/login",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Inicia sesión"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/registro",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Crea tu cuenta"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/cuenta",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Mi cuenta"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/mis-tickets",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Mis tickets"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/mis-tickets/TKT-8F2A1C",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Caribbean Music Fest 2026"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/compra/confirmacion/TKT-8F2A1C",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "¡Compra realizada con éxito!"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/staff/validacion",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Validación de ingreso"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/staff/eventos/CMF-2026/tickets",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Tickets pagados · CMF-2026"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Administración de eventos"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos/nuevo",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Nuevo evento"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos/CMF-2026",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "Caribbean Music Fest 2026 · CMF-2026"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/403",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "403"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/ruta-no-existente",
+      "tema": "oscuro",
+      "ancho": 360,
+      "contenido": 360,
+      "h1": [
+        "404"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Descubre los mejores eventos"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/eventos",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Cartelera"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/eventos/CMF-2026",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Caribbean Music Fest 2026"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/artistas",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Artistas"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/artistas/1",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Solar Beat"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/sedes",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Sedes"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/sedes/VEN-SMR-01",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Marina Convention Center"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/login",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Inicia sesión"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/registro",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Crea tu cuenta"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/cuenta",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Mi cuenta"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/mis-tickets",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Mis tickets"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/mis-tickets/TKT-8F2A1C",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Caribbean Music Fest 2026"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/compra/confirmacion/TKT-8F2A1C",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "¡Compra realizada con éxito!"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/staff/validacion",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Validación de ingreso"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/staff/eventos/CMF-2026/tickets",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Tickets pagados · CMF-2026"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Administración de eventos"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos/nuevo",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Nuevo evento"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos/CMF-2026",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Caribbean Music Fest 2026 · CMF-2026"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/403",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "403"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/ruta-no-existente",
+      "tema": "claro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "404"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Descubre los mejores eventos"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": "inicio_390_oscuro.png"
+    },
+    {
+      "ruta": "/eventos",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Cartelera"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/eventos/CMF-2026",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Caribbean Music Fest 2026"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/artistas",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Artistas"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/artistas/1",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Solar Beat"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/sedes",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Sedes"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/sedes/VEN-SMR-01",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Marina Convention Center"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/login",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Inicia sesión"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/registro",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Crea tu cuenta"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": "registro_390_oscuro.png"
+    },
+    {
+      "ruta": "/cuenta",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Mi cuenta"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/mis-tickets",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Mis tickets"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/mis-tickets/TKT-8F2A1C",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Caribbean Music Fest 2026"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/compra/confirmacion/TKT-8F2A1C",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "¡Compra realizada con éxito!"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/staff/validacion",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Validación de ingreso"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/staff/eventos/CMF-2026/tickets",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Tickets pagados · CMF-2026"
+      ],
+      "bloqueos": 1,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Administración de eventos"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/admin/eventos/nuevo",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Nuevo evento"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": "admin_eventos_nuevo_390_oscuro.png"
+    },
+    {
+      "ruta": "/admin/eventos/CMF-2026",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "Caribbean Music Fest 2026 · CMF-2026"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/403",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "403"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    },
+    {
+      "ruta": "/ruta-no-existente",
+      "tema": "oscuro",
+      "ancho": 390,
+      "contenido": 390,
+      "h1": [
+        "404"
+      ],
+      "bloqueos": 0,
+      "errores": [],
+      "axe": [],
+      "captura": null
+    }
+  ]
+}

@@ -1,0 +1,649 @@
+{
+  "info": {
+    "name": "PulsePass — contratos de referencia (22 operaciones)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colección no ejecutada contra la base del usuario. No almacena secretos; completar credenciales solo localmente. POST /api/users es USR-01 y A3, no dos endpoints."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "venueCode",
+      "value": "VEN-SMR-01",
+      "type": "string"
+    },
+    {
+      "key": "eventCode",
+      "value": "CMF-2026",
+      "type": "string"
+    },
+    {
+      "key": "artistId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "stageName",
+      "value": "Solar Beat",
+      "type": "string"
+    },
+    {
+      "key": "ticketCode",
+      "value": "TKT-8F2A1C",
+      "type": "string"
+    },
+    {
+      "key": "identifier",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "VEN-01 GET /api/venues/{{venueCode}}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/venues/{{venueCode}}",
+        "description": "VEN-01. UI: DetalleSede. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "VEN-02 GET /api/venues/active",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/venues/active",
+        "description": "VEN-02. UI: ListaSedes / AdminCrearEvento. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "EVT-01 POST /api/events",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/events",
+        "description": "EVT-01. UI: AdminCrearEvento. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventCode\": \"{{eventCode}}\",\n  \"name\": \"Evento de demostración\",\n  \"description\": \"Solo en entorno de pruebas autorizado\",\n  \"category\": \"MUSIC\",\n  \"eventDate\": \"2026-12-12T20:00:00\",\n  \"minimumAge\": 18,\n  \"venueCode\": \"{{venueCode}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "EVT-02 GET /api/events/{{eventCode}}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/events/{{eventCode}}",
+        "description": "EVT-02. UI: DetalleEvento / ADMIN / tarjetas. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "EVT-03 GET /api/events/published",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/events/published",
+        "description": "EVT-03. UI: Inicio / CatalogoEventos. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "EVT-04 PATCH /api/events/{{eventCode}}/publish",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/events/{{eventCode}}/publish",
+        "description": "EVT-04. UI: AdminGestionEvento. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "EVT-05 POST /api/events/{{eventCode}}/artists/{{artistId}}",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/events/{{eventCode}}/artists/{{artistId}}",
+        "description": "EVT-05. UI: AdminGestionEvento. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "EVT-06 GET /api/events/by-artist?stageName={{stageName}}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/events/by-artist?stageName={{stageName}}",
+        "description": "EVT-06. UI: CatalogoEventos / DetalleArtista. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ART-01 GET /api/artists/{{artistId}}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/artists/{{artistId}}",
+        "description": "ART-01. UI: DetalleArtista. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ART-02 GET /api/artists/by-stage-name?stageName={{stageName}}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/artists/by-stage-name?stageName={{stageName}}",
+        "description": "ART-02. UI: Filtro de artista en CatalogoEventos. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ART-03 GET /api/artists/active",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/artists/active",
+        "description": "ART-03. UI: Inicio / ListaArtistas / ADMIN. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "USR-01 / A3 POST /api/users",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/users",
+        "description": "USR-01 / A3. UI: Registro. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{identifier}}\",\n  \"email\": \"{{email}}\",\n  \"firstName\": \"Andrea\",\n  \"lastName\": \"Ruiz\",\n  \"birthDate\": \"1998-04-12\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "USR-02 GET /api/users/by-email?email={{email}}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/users/by-email?email={{email}}",
+        "description": "USR-02. UI: Cuenta (identidad propia). No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "USR-03 GET /api/users/by-username?username={{identifier}}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/users/by-username?username={{identifier}}",
+        "description": "USR-03. UI: Cuenta (alternar consulta propia). No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TKT-01 POST /api/tickets",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/tickets",
+        "description": "TKT-01. UI: DetalleEvento / PanelCompra. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userEmail\": \"{{email}}\",\n  \"eventCode\": \"{{eventCode}}\",\n  \"type\": \"VIP\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TKT-02 GET /api/tickets/{{ticketCode}}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/tickets/{{ticketCode}}",
+        "description": "TKT-02. UI: DetalleTicket / Confirmacion / STAFF. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TKT-03 GET /api/tickets/by-user?email={{email}}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/tickets/by-user?email={{email}}",
+        "description": "TKT-03. UI: MisTickets. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TKT-04 GET /api/events/{{eventCode}}/tickets/paid",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/events/{{eventCode}}/tickets/paid",
+        "description": "TKT-04. UI: TicketsPagadosEvento (tabla bloqueada). No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TKT-05 PATCH /api/tickets/{{ticketCode}}/cancel",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/tickets/{{ticketCode}}/cancel",
+        "description": "TKT-05. UI: MisTickets / DetalleTicket. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "TKT-06 PATCH /api/tickets/{{ticketCode}}/use",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/tickets/{{ticketCode}}/use",
+        "description": "TKT-06. UI: ValidacionIngreso. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "A1 POST /api/auth/login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "description": "A1. UI: Login. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"identifier\": \"{{identifier}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "A2 GET /api/auth/me",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/me",
+        "description": "A2. UI: AuthProvider / Cuenta. No ejecutar escrituras fuera de un entorno autorizado.",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
