@@ -223,6 +223,19 @@ class AuthorizationServiceImplTest {
     }
 
     @Test
+    void personalProfileAllowsOwnerAndAdminButNotForeignStaffOrUser() {
+        authenticate(principal(7L, true), Role.USER);
+        authorizationService.requireOwnerOrAdmin(7L);
+        assertThrows(AccessDeniedException.class, () -> authorizationService.requireOwnerOrAdmin(99L));
+
+        authenticate(principal(1L, true), Role.STAFF);
+        assertThrows(AccessDeniedException.class, () -> authorizationService.requireOwnerOrAdmin(7L));
+
+        authenticate(principal(1L, true), Role.ADMIN);
+        authorizationService.requireOwnerOrAdmin(7L);
+    }
+
+    @Test
     void hasRole_withMultipleRoles_matchesAny() {
         authenticate(principal(7L, true), Role.USER, Role.STAFF);
 

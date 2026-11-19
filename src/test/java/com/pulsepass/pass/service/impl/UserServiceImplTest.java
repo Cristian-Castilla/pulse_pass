@@ -50,7 +50,7 @@ class UserServiceImplTest {
         User user = new User("lookup", "lookup@example.com", true);
         org.springframework.test.util.ReflectionTestUtils.setField(user, "id", 7L);
         when(userRepository.findByEmailIgnoreCase("LOOKUP@example.com")).thenReturn(Optional.of(user));
-        UserResponse expected = new UserResponse(7L, "lookup", "lookup@example.com", true);
+        UserResponse expected = new UserResponse(7L, "lookup", "lookup@example.com", true, null, null, null);
         when(userMapper.toResponse(user)).thenReturn(expected);
         assertThat(userService.findByEmail("LOOKUP@example.com")).isSameAs(expected);
         var order = inOrder(authorizationService, userMapper);
@@ -63,7 +63,7 @@ class UserServiceImplTest {
         User user = new User("lookup", "lookup@example.com", true);
         org.springframework.test.util.ReflectionTestUtils.setField(user, "id", 7L);
         when(userRepository.findByUsername("lookup")).thenReturn(Optional.of(user));
-        UserResponse expected = new UserResponse(7L, "lookup", "lookup@example.com", true);
+        UserResponse expected = new UserResponse(7L, "lookup", "lookup@example.com", true, null, null, null);
         when(userMapper.toResponse(user)).thenReturn(expected);
         assertThat(userService.findByUsername("lookup")).isSameAs(expected);
         var order = inOrder(authorizationService, userMapper);
@@ -93,7 +93,7 @@ class UserServiceImplTest {
                 "Andrea", "García", "3001234567", "Bogotá",
                 LocalDate.of(1995, 5, 15), user);
         UserResponse expectedResponse = new UserResponse(
-                1L, "andrea", "andrea@example.com", true);
+                1L, "andrea", "andrea@example.com", true, "Andrea", "García", request.birthDate());
 
         when(userRepository.findByUsername("andrea")).thenReturn(Optional.empty());
         when(userRepository.findByEmailIgnoreCase("andrea@example.com")).thenReturn(Optional.empty());
