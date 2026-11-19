@@ -171,6 +171,18 @@ head -c 48 /dev/urandom | base64
 
 `.env.properties` está excluido del repositorio (`.gitignore`: `.env*`). **No subir la clave.**
 
+Con `.env.properties` completado, iniciar desde la raíz con `mvn spring-boot:run`;
+Spring lo carga sin tener que volver a definir variables al abrir otra terminal.
+Las variables de entorno de la terminal tienen prioridad sobre este archivo: eliminar
+cualquier `DB_PASSWORD` o `PULSEPASS_JWT_SECRET_BASE64` antiguo si impide el arranque.
+Cambiar la clave JWT invalida los tokens anteriores: volver a iniciar sesión.
+
+La migración `V6__insert_initial_venues.sql` comparte siete sedes demo entre instalaciones.
+Flyway la aplica en el próximo arranque y conserva las sedes existentes por código
+(`ON CONFLICT DO NOTHING`). No editar V2 ni el historial de Flyway para agregarlas.
+El aforo 1000 y la dirección pendiente son datos ficticios; la migración no sincroniza
+cambios posteriores ni comparte usuarios, roles o eventos.
+
 ## Roles
 
 | Rol | Qué puede hacer |
