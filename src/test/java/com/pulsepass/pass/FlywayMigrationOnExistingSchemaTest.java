@@ -65,8 +65,8 @@ class FlywayMigrationOnExistingSchemaTest extends PostgresContainerSupport {
             }
 
             Flyway latest = Flyway.configure().dataSource(isolated).schemas(schema).defaultSchema(schema).load();
-            assertThat(latest.migrate().migrationsExecuted).isEqualTo(5 - startingVersion);
-            assertThat(latest.info().current().getVersion().getVersion()).isEqualTo("5");
+            assertThat(latest.migrate().migrationsExecuted).isEqualTo(6 - startingVersion);
+            assertThat(latest.info().current().getVersion().getVersion()).isEqualTo("6");
             assertThat(jdbc.queryForObject("SELECT venue_id FROM events WHERE id=?", Long.class, event)).isEqualTo(venue);
             assertThat(jdbc.queryForObject("SELECT event_date FROM events WHERE id=?", LocalDateTime.class, event))
                     .isEqualTo(LocalDate.of(2027, 6, 15).atStartOfDay());

@@ -90,7 +90,7 @@ class TicketServiceImplTest {
         TicketResponse expectedResponse = new TicketResponse(
                 1L, "TCK-001", TicketType.VIP, new BigDecimal("250000"),
                 TicketStatus.PAID, LocalDateTime.now(),
-                "andrea@example.com", "CMF-2026", "Caribbean Music Fest 2026");
+                "andrea@example.com", "CMF-2026", "Caribbean Music Fest 2026", "Andrea García");
 
         when(userRepository.findByEmailIgnoreCase("andrea@example.com")).thenReturn(Optional.of(user));
         when(eventRepository.findByEventCode("CMF-2026")).thenReturn(Optional.of(event));
@@ -258,7 +258,7 @@ class TicketServiceImplTest {
         TicketResponse expectedResponse = new TicketResponse(
                 2L, "TCK-002", TicketType.GENERAL, new BigDecimal("100000"),
                 TicketStatus.PAID, LocalDateTime.now(),
-                "carlos@example.com", "CMF-2026", "Caribbean Music Fest 2026");
+                "carlos@example.com", "CMF-2026", "Caribbean Music Fest 2026", null);
 
         when(userRepository.findByEmailIgnoreCase("carlos@example.com")).thenReturn(Optional.of(user));
         when(eventRepository.findByEventCode("CMF-2026")).thenReturn(Optional.of(event));
@@ -295,7 +295,7 @@ class TicketServiceImplTest {
         TicketResponse expectedResponse = new TicketResponse(
                 1L, "TCK-001", TicketType.VIP, new BigDecimal("250000"),
                 TicketStatus.CANCELLED, LocalDateTime.now(),
-                "andrea@example.com", "CMF-2026", "Caribbean Music Fest 2026");
+                "andrea@example.com", "CMF-2026", "Caribbean Music Fest 2026", null);
 
         when(ticketRepository.findByTicketCode("TCK-001")).thenReturn(Optional.of(ticket));
         when(ticketRepository.save(any(Ticket.class))).thenReturn(ticket);
@@ -346,7 +346,7 @@ class TicketServiceImplTest {
         TicketResponse expectedResponse = new TicketResponse(
                 1L, "TCK-001", TicketType.VIP, new BigDecimal("250000"),
                 TicketStatus.USED, LocalDateTime.now(),
-                "andrea@example.com", "CMF-2026", "Caribbean Music Fest 2026");
+                "andrea@example.com", "CMF-2026", "Caribbean Music Fest 2026", null);
 
         when(ticketRepository.findByTicketCode("TCK-001")).thenReturn(Optional.of(ticket));
         when(ticketRepository.save(any(Ticket.class))).thenReturn(ticket);

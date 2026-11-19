@@ -12,7 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 class UserControllerSliceTest extends ControllerSliceSupport {
-    private final UserResponse user = new UserResponse(7L,"andrea","andrea@example.com",true);
+    private final UserResponse user = new UserResponse(7L,"andrea","andrea@example.com",true,
+        "Andrea","Ruiz",java.time.LocalDate.of(1998,4,12));
     private final String body = """
         {"username":"andrea","email":"andrea@example.com","firstName":"Andrea","lastName":"Gomez","birthDate":"1995-01-01","password":"OnlyForTests-2026!"}
         """;
@@ -33,7 +34,12 @@ class UserControllerSliceTest extends ControllerSliceSupport {
     @Test void emailLookup() throws Exception {
         when(users.findByEmail("andrea@example.com")).thenReturn(user);
         mvc.perform(get("/api/users/by-email").with(actor("USER")).param("email","andrea@example.com"))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(7));
+            .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(7))
+            .andExpect(jsonPath("$.firstName").value("Andrea"))
+            .andExpect(jsonPath("$.lastName").value("Ruiz"))
+            .andExpect(jsonPath("$.birthDate").value("1998-04-12"))
+            .andExpect(jsonPath("$.phone").doesNotExist())
+            .andExpect(jsonPath("$.city").doesNotExist());
         verify(users).findByEmail("andrea@example.com");
     }
     @Test void usernameLookup() throws Exception {

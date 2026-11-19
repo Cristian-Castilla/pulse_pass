@@ -17,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(TicketController.class)
 class TicketControllerSliceTest extends ControllerSliceSupport {
     private final TicketResponse ticket = new TicketResponse(1L,"TCK",TicketType.GENERAL,new BigDecimal("100000"),
-        TicketStatus.PAID,LocalDateTime.of(2098,1,1,19,0),"andrea@example.com","EVT","Festival");
+        TicketStatus.PAID,LocalDateTime.of(2098,1,1,19,0),"andrea@example.com","EVT","Festival","Andrea Ruiz");
     @Test void purchase() throws Exception {
         when(tickets.purchase(any())).thenReturn(ticket);
         mvc.perform(post("/api/tickets").with(actor("USER")).contentType(MediaType.APPLICATION_JSON)
@@ -36,7 +36,11 @@ class TicketControllerSliceTest extends ControllerSliceSupport {
     @Test void lookup() throws Exception {
         when(tickets.findByCode("TCK")).thenReturn(ticket);
         mvc.perform(get("/api/tickets/TCK").with(actor("USER"))).andExpect(status().isOk())
-            .andExpect(jsonPath("$.ticketCode").value("TCK"));
+            .andExpect(jsonPath("$.ticketCode").value("TCK"))
+            .andExpect(jsonPath("$.userFullName").value("Andrea Ruiz"))
+            .andExpect(jsonPath("$.userEmail").value("andrea@example.com"))
+            .andExpect(jsonPath("$.birthDate").doesNotExist())
+            .andExpect(jsonPath("$.profile").doesNotExist());
         verify(tickets).findByCode("TCK");
     }
     @Test void userTickets() throws Exception {

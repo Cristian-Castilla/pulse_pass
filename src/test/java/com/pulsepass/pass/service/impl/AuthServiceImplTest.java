@@ -301,7 +301,7 @@ class AuthServiceImplTest {
     @Test
     void register_delegatesBusinessRules() {
         User saved = new User("andrea", "andrea@example.com", true);
-        UserResponse expected = new UserResponse(42L, "andrea", "andrea@example.com", true);
+        UserResponse expected = new UserResponse(42L, "andrea", "andrea@example.com", true, null, null, null);
         org.mockito.Mockito.lenient().when(userService.register(validRequest())).thenReturn(expected);
         org.mockito.Mockito.lenient().when(userRepository.findById(42L)).thenReturn(Optional.of(saved));
         assertThat(authService.register(validRequest())).isSameAs(expected);
@@ -310,7 +310,7 @@ class AuthServiceImplTest {
     }
 
     private void stubRegistration(RegisterUserRequest request, Long id) {
-        when(userService.register(request)).thenReturn(new UserResponse(id, "andrea", "andrea@example.com", true));
+        when(userService.register(request)).thenReturn(new UserResponse(id, "andrea", "andrea@example.com", true, null, null, null));
         when(userRepository.findById(id)).thenReturn(Optional.of(new User("andrea", "andrea@example.com", true)));
     }
 
